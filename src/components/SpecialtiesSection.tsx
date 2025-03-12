@@ -7,12 +7,13 @@ interface SpecialtyCardProps {
   title: string;
   description: string;
   delay?: number;
+  path: string;
 }
 
-const SpecialtyCard = ({ icon, title, description, delay = 0 }: SpecialtyCardProps) => {
+const SpecialtyCard = ({ icon, title, description, delay = 0, path }: SpecialtyCardProps) => {
   return (
     <Link 
-      to="/specialties" 
+      to={path} 
       className={`flex flex-col items-center p-5 text-center hover:scale-105 transition-all duration-300 animate-fade-up`} 
       style={{ animationDelay: `${delay}ms` }}
     >
@@ -40,60 +41,70 @@ const SpecialtiesSection = () => {
             title="Psychologists" 
             description="Therapy and counseling"
             delay={0}
+            path="/doctors/psychologists"
           />
           <SpecialtyCard 
             icon={<UserCog size={36} />} 
             title="Psychiatrists" 
             description="Medical diagnosis and treatment"
             delay={100}
+            path="/doctors/psychiatrists"
           />
           <SpecialtyCard 
             icon={<UserRound size={36} />} 
             title="Therapists" 
             description="General mental health support"
             delay={200}
+            path="/doctors/therapists"
           />
           <SpecialtyCard 
             icon={<HeartHandshake size={36} />} 
             title="Counselors" 
             description="Career, relationship, and personal counseling"
             delay={300}
+            path="/doctors/counselors"
           />
           <SpecialtyCard 
             icon={<Baby size={36} />} 
             title="Child Psychologists" 
             description="Support for children's mental health"
             delay={400}
+            path="/doctors/child-psychologists"
           />
           <SpecialtyCard 
             icon={<Bomb size={36} />} 
             title="Trauma Specialists" 
             description="PTSD and trauma recovery assistance"
             delay={500}
+            path="/doctors/trauma-specialists"
           />
           <SpecialtyCard 
             icon={<Wine size={36} />} 
             title="Addiction Specialists" 
             description="Support for substance abuse issues"
             delay={600}
+            path="/doctors/addiction-specialists"
           />
           <SpecialtyCard 
             icon={<BrainIcon size={36} />} 
             title="CBT Therapists" 
             description="Specialized cognitive therapy"
             delay={700}
+            path="/doctors/cbt-therapists"
           />
           <SpecialtyCard 
             icon={<Leaf size={36} />} 
             title="Mindfulness Coaches" 
             description="Meditation and stress relief guidance"
             delay={800}
+            path="/doctors/mindfulness-coaches"
           />
           <SpecialtyCard 
             icon={<Sparkles size={36} />} 
             title="Life Coaches" 
             description="Personal growth and motivation"
             delay={900}
+            path="/doctors/life-coaches"
           />
         </div>
       </div>

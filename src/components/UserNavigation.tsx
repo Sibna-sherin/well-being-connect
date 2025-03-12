@@ -41,19 +41,25 @@ const UserNavigation = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>
-                  <Link to="/profile" className="flex items-center">
+                  <Link to="/dashboard" className="flex items-center w-full">
+                    <LayoutGrid className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link to="/profile" className="flex items-center w-full">
                     <User className="mr-2 h-4 w-4" />
                     <span>My Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link to="/appointments" className="flex items-center">
+                  <Link to="/appointments" className="flex items-center w-full">
                     <Calendar className="mr-2 h-4 w-4" />
                     <span>Book Appointment</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link to="/specialties" className="flex items-center">
+                  <Link to="/specialties" className="flex items-center w-full">
                     <LayoutGrid className="mr-2 h-4 w-4" />
                     <span>Categories</span>
                   </Link>
