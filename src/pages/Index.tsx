@@ -3,6 +3,7 @@ import { Brain, Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import FeatureCard from "@/components/FeatureCard";
+import SpecialtiesSection from "@/components/SpecialtiesSection";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -54,6 +55,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* Specialties Section */}
+      <SpecialtiesSection />
     </div>
   );
 };
