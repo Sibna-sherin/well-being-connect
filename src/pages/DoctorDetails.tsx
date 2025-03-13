@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import UserNavigation from "@/components/UserNavigation";
@@ -16,10 +15,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, MapPin, Star, Check, BadgeCheck } from "lucide-react";
+import { CalendarIcon, Clock, MapPin, Star, Check, BadgeCheck, Mail } from "lucide-react";
 import DoctorCard from "@/components/DoctorCard";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data for related doctors
 const relatedDoctors = [
@@ -62,6 +72,11 @@ const DoctorDetails = () => {
   const { id } = useParams();
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
   // Mock doctor data (would normally be fetched based on id)
   const doctor = {
@@ -80,13 +95,57 @@ const DoctorDetails = () => {
 
   const handleBookAppointment = () => {
     if (date && selectedTimeSlot) {
-      console.log("Booking appointment for:", {
-        doctor: doctor.name,
-        date: format(date, "PPP"),
-        time: selectedTimeSlot
+      setIsConfirmDialogOpen(true);
+    }
+  };
+
+  const confirmBooking = async () => {
+    if (!email || !name) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide your name and email address",
+        variant: "destructive",
       });
-      // Here you would typically make an API call to book the appointment
-      // For now, let's just log the data
+      return;
+    }
+    
+    setIsBooking(true);
+    
+    try {
+      // Simulate API call with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Close the dialog
+      setIsConfirmDialogOpen(false);
+      setIsBooking(false);
+      
+      // Show success message
+      toast({
+        title: "Appointment Booked!",
+        description: `Your appointment with ${doctor.name} on ${format(date!, "PPP")} at ${selectedTimeSlot} has been booked. A confirmation email has been sent to ${email}.`,
+      });
+      
+      // Clear form state
+      setDate(undefined);
+      setSelectedTimeSlot(null);
+      
+      // Simulate sending an email
+      console.log("Sending confirmation email to:", email, {
+        doctor: doctor.name,
+        date: format(date!, "PPP"),
+        time: selectedTimeSlot,
+        patientName: name,
+        patientPhone: phone
+      });
+      
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      toast({
+        title: "Booking Failed",
+        description: "There was an issue booking your appointment. Please try again.",
+        variant: "destructive",
+      });
+      setIsBooking(false);
     }
   };
 
@@ -225,6 +284,80 @@ const DoctorDetails = () => {
                 </Button>
               </CardContent>
             </Card>
+            
+            {/* Confirmation Dialog */}
+            <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Confirm Your Appointment</DialogTitle>
+                  <DialogDescription>
+                    Please provide your details to book an appointment with {doctor.name} on {date ? format(date, "PPP") : ""} at {selectedTimeSlot}.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input 
+                      id="name" 
+                      value={name} 
+                      onChange={(e) => setName(e.target.value)} 
+                      className="col-span-3" 
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">
+                      Email
+                    </Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="phone" className="text-right">
+                      Phone
+                    </Label>
+                    <Input 
+                      id="phone" 
+                      value={phone} 
+                      onChange={(e) => setPhone(e.target.value)} 
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsConfirmDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={confirmBooking}
+                    className="bg-mindease-primary hover:bg-mindease-primary/90"
+                    disabled={isBooking}
+                  >
+                    {isBooking ? (
+                      <>Processing...</>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Confirm & Send Email
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             
             {/* Related Doctors Section */}
             <div className="mt-8">

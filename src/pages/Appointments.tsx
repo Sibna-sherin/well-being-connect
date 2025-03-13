@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import UserNavigation from "@/components/UserNavigation";
@@ -6,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Brain, UserCog, UserRound, HeartHandshake, Baby, Bomb, Wine, Leaf, Sparkles } from "lucide-react";
 import DoctorCard from "@/components/DoctorCard";
+import { toast } from "@/hooks/use-toast";
 
 interface SpecialtyInfo {
   id: string;
@@ -69,6 +69,14 @@ const topDoctors = [
 const Appointments = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
 
+  const handleSpecialtyClick = (specialtyId: string) => {
+    setSelectedSpecialty(specialtyId);
+    toast({
+      title: "Specialty Selected",
+      description: `You selected ${specialtyId}. You'll be redirected to specialists in this category.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
       <UserNavigation />
@@ -86,7 +94,7 @@ const Appointments = () => {
                   className={`h-full hover:shadow-md transition-all hover:scale-105 cursor-pointer ${
                     selectedSpecialty === specialty.id ? "border-mindease-primary ring-2 ring-mindease-primary/20" : ""
                   }`}
-                  onClick={() => setSelectedSpecialty(specialty.id)}
+                  onClick={() => handleSpecialtyClick(specialty.id)}
                 >
                   <CardContent className="flex flex-col items-center justify-center p-4 h-full">
                     <div className="w-12 h-12 bg-mindease-primary/10 rounded-full flex items-center justify-center mb-3">
