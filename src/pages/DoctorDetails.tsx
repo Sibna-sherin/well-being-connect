@@ -29,7 +29,7 @@ const relatedDoctors = [
     specialty: "Psychologist",
     rating: 4.9,
     reviews: 124,
-    image: "/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png",
+    image: "/lovable-uploads/doctorf.png",
     specialtyId: "psychologists"
   },
   {
@@ -38,7 +38,7 @@ const relatedDoctors = [
     specialty: "Psychiatrist",
     rating: 4.8,
     reviews: 98,
-    image: "/lovable-uploads/2c9db039-703a-4cba-8db3-60741bc93a3f.png",
+    image: "/lovable-uploads/doctorm.png",
     specialtyId: "psychiatrists"
   },
   {
@@ -47,7 +47,7 @@ const relatedDoctors = [
     specialty: "Therapist",
     rating: 4.7,
     reviews: 87,
-    image: "/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png",
+    image: "/lovable-uploads/doctorf.png",
     specialtyId: "therapists"
   },
 ];
@@ -70,7 +70,7 @@ const DoctorDetails = () => {
     specialty: "Clinical Psychologist",
     rating: 4.9,
     reviews: 124,
-    image: "/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png",
+    image: "/lovable-uploads/doctorm.png",
     specialtyId: "psychologists",
     verified: true,
     education: "PhD in Clinical Psychology, Stanford University",

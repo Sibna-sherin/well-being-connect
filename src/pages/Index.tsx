@@ -15,7 +15,7 @@ const topDoctors = [
     specialty: "Psychologist",
     rating: 4.9,
     reviews: 124,
-    image: "/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png",
+    image: "/lovable-uploads/doctorf.png",
     specialtyId: "psychologists"
   },
   {
@@ -24,7 +24,7 @@ const topDoctors = [
     specialty: "Psychiatrist",
     rating: 4.8,
     reviews: 98,
-    image: "/lovable-uploads/2c9db039-703a-4cba-8db3-60741bc93a3f.png",
+    image: "/lovable-uploads/doctorm.png",
     specialtyId: "psychiatrists"
   },
   {
@@ -33,7 +33,7 @@ const topDoctors = [
     specialty: "Therapist",
     rating: 4.7,
     reviews: 87,
-    image: "/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png",
+    image: "/lovable-uploads/doctorf.png",
     specialtyId: "therapists"
   },
   {
@@ -42,7 +42,7 @@ const topDoctors = [
     specialty: "CBT Specialist",
     rating: 4.9,
     reviews: 112,
-    image: "/lovable-uploads/2c9db039-703a-4cba-8db3-60741bc93a3f.png",
+    image: "/lovable-uploads/doctorm.png",
     specialtyId: "cbt-therapists"
   },
   {
@@ -51,7 +51,7 @@ const topDoctors = [
     specialty: "Child Psychologist",
     rating: 4.8,
     reviews: 75,
-    image: "/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png",
+    image: "/lovable-uploads/doctorf.png",
     specialtyId: "child-psychologists"
   },
 ];
@@ -82,7 +82,7 @@ const Index = () => {
           <div className="md:w-1/2">
             <div className="bg-mindease-primary rounded-2xl overflow-hidden">
               <img 
-                src="/lovable-uploads/2c9db039-703a-4cba-8db3-60741bc93a3f.png" 
+                src="/lovable-uploads/hero.png" 
                 alt="Mental health professionals" 
                 className="w-full h-auto object-cover"
               />
@@ -163,7 +163,7 @@ const Index = () => {
             </div>
             <div className="md:w-1/3">
               <img 
-                src="/lovable-uploads/14fee741-0aa3-4eaa-9c4f-62d516b188a4.png" 
+                src="/lovable-uploads/footer.png" 
                 alt="Mental health professional" 
                 className="rounded-lg w-full h-auto"
               />
