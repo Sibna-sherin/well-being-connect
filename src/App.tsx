@@ -13,6 +13,13 @@ import NotFound from "./pages/NotFound";
 import Appointments from "./pages/Appointments";
 import DoctorDetails from "./pages/DoctorDetails";
 import DoctorsList from "./pages/DoctorsList";
+import { AdminProvider } from "./contexts/AdminContext";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import DoctorManagement from "./pages/admin/DoctorManagement";
+import SystemMonitoring from "./pages/admin/SystemMonitoring";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -23,18 +30,31 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/specialties" element={<Specialties />} />
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/doctors" element={<DoctorsList />} />
-            <Route path="/doctors/:specialty" element={<DoctorsList />} />
-            <Route path="/doctor/:id" element={<DoctorDetails />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AdminProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/specialties" element={<Specialties />} />
+              <Route path="/appointments" element={<Appointments />} />
+              <Route path="/doctors" element={<DoctorsList />} />
+              <Route path="/doctors/:specialty" element={<DoctorsList />} />
+              <Route path="/doctor/:id" element={<DoctorDetails />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              
+              <Route element={<AdminProtectedRoute />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/doctors" element={<DoctorManagement />} />
+                <Route path="/admin/monitoring" element={<SystemMonitoring />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AdminProvider>
         </BrowserRouter>
       </div>
     </TooltipProvider>
