@@ -1,10 +1,10 @@
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useUser } from "@/contexts/UserContext";
+import { useDoctor } from "@/contexts/DoctorContext";
 import { toast } from "@/hooks/use-toast";
 
-const UserProtectedRoute = () => {
-  const { isAuthenticated } = useUser();
+const DoctorProtectedRoute = () => {
+  const { isAuthenticated } = useDoctor();
   const location = useLocation();
 
   if (!isAuthenticated) {
@@ -12,15 +12,15 @@ const UserProtectedRoute = () => {
     setTimeout(() => {
       toast({
         title: "Authentication required",
-        description: "Please login to access this feature.",
+        description: "Please login as a doctor to access this feature.",
         variant: "destructive",
       });
     }, 0);
     
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login?role=doctor" state={{ from: location }} replace />;
   }
 
   return <Outlet />;
 };
 
-export default UserProtectedRoute;
+export default DoctorProtectedRoute;

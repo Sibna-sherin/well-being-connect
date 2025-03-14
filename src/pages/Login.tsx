@@ -4,30 +4,57 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { useDoctor } from "@/contexts/DoctorContext";
+import { User, Stethoscope } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useUser();
+  const { login: userLogin } = useUser();
+  const { login: doctorLogin } = useDoctor();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("patient");
 
   // Get the redirect path from location state, or default to dashboard
-  const from = location.state?.from?.pathname || "/dashboard";
+  const from = location.state?.from?.pathname || 
+    (activeTab === "patient" ? "/dashboard" : "/doctor/dashboard");
+
+  // Check for role parameter in URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const role = params.get('role');
+    if (role === 'doctor') {
+      setActiveTab('doctor');
+    }
+  }, [location.search]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const success = await login(email, password);
-      if (success) {
-        // Redirect to the page they were trying to access, or dashboard
-        navigate(from, { replace: true });
+      let success;
+      
+      if (activeTab === "patient") {
+        success = await userLogin(email, password);
+        if (success) {
+          navigate("/dashboard", { replace: true });
+        }
+      } else {
+        success = await doctorLogin(email, password);
+        if (success) {
+          navigate("/doctor/dashboard", { replace: true });
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -50,46 +77,102 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="john@example.com" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Password</Label>
-                      <Link to="/forgot-password" className="text-sm text-mindease-primary hover:underline">
-                        Forgot password?
-                      </Link>
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full mb-6">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="patient" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>Patient</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="doctor" className="flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4" />
+                    <span>Doctor</span>
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="patient">
+                  <form onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          placeholder="john@example.com" 
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="password">Password</Label>
+                          <Link to="/forgot-password" className="text-sm text-mindease-primary hover:underline">
+                            Forgot password?
+                          </Link>
+                        </div>
+                        <Input 
+                          id="password" 
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required 
+                        />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-mindease-primary hover:bg-mindease-primary/90"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Signing in..." : "Sign in"}
+                      </Button>
                     </div>
-                    <Input 
-                      id="password" 
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-mindease-primary hover:bg-mindease-primary/90"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Sign in"}
-                  </Button>
-                </div>
-              </form>
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="doctor">
+                  <form onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="doctor-email">Email</Label>
+                        <Input 
+                          id="doctor-email" 
+                          type="email" 
+                          placeholder="doctor@mindease.com" 
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="doctor-password">Password</Label>
+                          <Link to="/forgot-password" className="text-sm text-mindease-primary hover:underline">
+                            Forgot password?
+                          </Link>
+                        </div>
+                        <Input 
+                          id="doctor-password" 
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required 
+                        />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-mindease-primary hover:bg-mindease-primary/90"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Signing in..." : "Sign in"}
+                      </Button>
+                    </div>
+                  </form>
+                </TabsContent>
+              </Tabs>
+              
               <div className="mt-4 text-center text-sm">
                 Don't have an account?{" "}
-                <Link to="/register" className="text-mindease-primary hover:underline">
+                <Link to={activeTab === "patient" ? "/register" : "/register?role=doctor"} className="text-mindease-primary hover:underline">
                   Sign up
                 </Link>
               </div>
