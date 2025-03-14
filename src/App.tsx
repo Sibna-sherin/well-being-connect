@@ -14,7 +14,9 @@ import Appointments from "./pages/Appointments";
 import DoctorDetails from "./pages/DoctorDetails";
 import DoctorsList from "./pages/DoctorsList";
 import { AdminProvider } from "./contexts/AdminContext";
+import { UserProvider } from "./contexts/UserContext";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import UserProtectedRoute from "./components/UserProtectedRoute";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DoctorManagement from "./pages/admin/DoctorManagement";
@@ -31,29 +33,36 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AdminProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/specialties" element={<Specialties />} />
-              <Route path="/appointments" element={<Appointments />} />
-              <Route path="/doctors" element={<DoctorsList />} />
-              <Route path="/doctors/:specialty" element={<DoctorsList />} />
-              <Route path="/doctor/:id" element={<DoctorDetails />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              
-              <Route element={<AdminProtectedRoute />}>
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/doctors" element={<DoctorManagement />} />
-                <Route path="/admin/monitoring" element={<SystemMonitoring />} />
-                <Route path="/admin/settings" element={<AdminSettings />} />
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <UserProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Protected User Routes */}
+                <Route element={<UserProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/appointments" element={<Appointments />} />
+                  <Route path="/doctors" element={<DoctorsList />} />
+                  <Route path="/doctors/:specialty" element={<DoctorsList />} />
+                  <Route path="/doctor/:id" element={<DoctorDetails />} />
+                </Route>
+                
+                <Route path="/specialties" element={<Specialties />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                
+                <Route element={<AdminProtectedRoute />}>
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/doctors" element={<DoctorManagement />} />
+                  <Route path="/admin/monitoring" element={<SystemMonitoring />} />
+                  <Route path="/admin/settings" element={<AdminSettings />} />
+                </Route>
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </UserProvider>
           </AdminProvider>
         </BrowserRouter>
       </div>

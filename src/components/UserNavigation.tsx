@@ -9,8 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUser } from "@/contexts/UserContext";
 
 const UserNavigation = () => {
+  const { logout } = useUser();
+
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-sm z-50 border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -71,7 +74,7 @@ const UserNavigation = () => {
           <Button 
             variant="outline" 
             className="border-mindease-primary text-mindease-primary hover:bg-mindease-primary hover:text-white"
-            onClick={() => console.log("Logout")}
+            onClick={logout}
           >
             Logout
           </Button>
