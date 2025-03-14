@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import { Link } from "react-router-dom";
+import { Shield } from "lucide-react";
 
 const Navigation = () => {
   return (
@@ -9,6 +10,12 @@ const Navigation = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Logo />
         <div className="flex items-center space-x-4">
+          <Link to="/admin/login">
+            <Button variant="ghost" size="sm" className="flex items-center gap-1">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Button>
+          </Link>
           <Link to="/login">
             <Button variant="ghost">Login</Button>
           </Link>
