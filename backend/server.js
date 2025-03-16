@@ -49,6 +49,32 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Database diagnostic route
+app.get("/api/db-status", async (req, res) => {
+  try {
+    // Get a count of documents in each collection
+    const collections = mongoose.connection.collections;
+    const stats = {};
+    
+    for (const [name, collection] of Object.entries(collections)) {
+      stats[name] = await collection.countDocuments();
+    }
+    
+    res.json({
+      success: true,
+      dbConnected: mongoose.connection.readyState === 1,
+      collectionStats: stats,
+      databaseName: mongoose.connection.name
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      dbConnected: mongoose.connection.readyState === 1
+    });
+  }
+});
+
 // Root route
 app.get("/", (req, res) => {
   res.send("MindEASE API is running!");
