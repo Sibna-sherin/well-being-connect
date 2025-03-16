@@ -72,3 +72,9 @@ app.listen(PORT, () => {
 
 // Export the app for testing
 export default app;
+
+
+console.log("✅ Auth routes loaded");
+
+app.use("/api/auth", authRoutes);
+
