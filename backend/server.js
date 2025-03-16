@@ -13,15 +13,6 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 // Load environment variables
 dotenv.config();
 
-<<<<<<< HEAD
-const MONGO_URI = process.env.MONGO_URI;
-
-// Connect to MongoDB
-mongoose
-  .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 }) // Set timeout to 5 seconds
-  .then(() => console.log("✅ MongoDB connected successfully!"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-=======
 // Create Express app
 const app = express();
 
@@ -32,9 +23,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected successfully!"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 })
+  .then(() => console.log("✅ MongoDB connected successfully!"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Set JWT secret if not in .env
 if (!process.env.JWT_SECRET) {
@@ -81,4 +72,3 @@ app.listen(PORT, () => {
 
 // Export the app for testing
 export default app;
->>>>>>> 5d70eccdb5e29c45467518ae849fa3865c0822f2
