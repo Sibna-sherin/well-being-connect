@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -15,45 +14,64 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  // Check if user is already logged in on mount
   useEffect(() => {
-    const userAuth = localStorage.getItem('userAuth');
-    if (userAuth === 'true') {
+    const userAuth = localStorage.getItem("userAuth");
+    if (userAuth === "true") {
       setIsAuthenticated(true);
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call - in a real app, this would verify credentials with a backend
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // For demo purposes, accept any non-empty credentials
-        if (email && password) {
-          setIsAuthenticated(true);
-          localStorage.setItem('userAuth', 'true');
-          toast({
-            title: "Login successful",
-            description: "Welcome to MindEASE."
-          });
-          resolve(true);
-        } else {
-          toast({
-            title: "Login failed",
-            description: "Invalid credentials. Please try again.",
-            variant: "destructive"
-          });
-          resolve(false);
-        }
-      }, 1000);
-    });
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log(data);
+        localStorage.setItem("userAuth", "true");
+        localStorage.setItem("token", data.token); // Store JWT token
+        setIsAuthenticated(true);
+
+        toast({
+          title: "Login successful",
+          description: "Welcome to MindEase.",
+        });
+        navigate("/dashboard", { replace: true });
+        return true;
+      } else {
+        toast({
+          title: "Login failed",
+          description: data.message || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+
+        return false;
+      }
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "An error occurred. Please try again later.",
+        variant: "destructive",
+      });
+
+      return false;
+    }
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('userAuth');
+    localStorage.removeItem("userAuth");
+    localStorage.removeItem("token"); // Remove JWT token
     toast({
       title: "Logged out",
-      description: "You have been logged out successfully."
+      description: "You have been logged out successfully.",
     });
     navigate("/login");
   };

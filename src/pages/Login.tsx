@@ -47,9 +47,9 @@ const Login = () => {
       
       if (activeTab === "patient") {
         success = await userLogin(email, password);
-        if (success) {
-          navigate("/dashboard", { replace: true });
-        }
+        // if (success) {
+        //   navigate("/dashboard", { replace: true });
+        // }
       } else {
         success = await doctorLogin(email, password);
         if (success) {

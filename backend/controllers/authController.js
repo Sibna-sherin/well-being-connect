@@ -62,11 +62,17 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      if (user.role === "doctor" && !user.approved) {
-        return res.status(403).json({ success: false, message: "Your account is pending approval by administrators" });
-      }
-
+    // if (user && (await bcrypt.compare(password, user.password))) {
+    //   if (user.role === "doctor" && !user.approved) {
+    //     return res.status(403).json({ success: false, message: "Your account is pending approval by administrators" });
+    //   }
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      console.log("Password match:", isMatch);
+    
+      // if (!isMatch){
+      //   res.status(401).json({ success: false, message: "Invalid  password" });
+      // }
       const token = generateToken(user._id);
       res.json({
         success: true,

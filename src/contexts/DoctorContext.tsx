@@ -39,42 +39,73 @@ export const DoctorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call - in a real app, this would verify credentials with a backend
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // For demo purposes, accept any valid email/password
-        if (email && password) {
-          // Mock doctor data - in a real app, this would come from the backend
-          const mockDoctorData: Doctor = {
-            id: 1,
-            name: email.split('@')[0].replace(/\./g, ' ').replace(/^(.)|\s+(.)/g, (c) => c.toUpperCase()),
-            email: email,
-            specialty: "Psychologist"
-          };
-          
-          setDoctorData(mockDoctorData);
-          setIsAuthenticated(true);
-          localStorage.setItem('doctorAuth', 'true');
-          localStorage.setItem('doctorData', JSON.stringify(mockDoctorData));
-          
-          toast({
-            title: "Login successful",
-            description: "Welcome to your MindEASE doctor dashboard."
-          });
-          
-          resolve(true);
-        } else {
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        if (data.data.role !== "doctor") {
           toast({
             title: "Login failed",
-            description: "Invalid credentials. Please try again.",
-            variant: "destructive"
+            description: "This account is not registered as a doctor.",
+            variant: "destructive",
           });
-          
-          resolve(false);
+          return false;
         }
-      }, 1000);
-    });
+  
+        if (!data.data.approved) {
+          toast({
+            title: "Account pending approval",
+            description: "Your account is awaiting admin approval.",
+            variant: "destructive",
+          });
+          return false;
+        }
+  
+        const doctorData: Doctor = {
+          id: data.data._id,
+          name: data.data.name,
+          email: data.data.email,
+          specialty: "Psychologist", // Assuming this data should be stored
+        };
+  
+        setDoctorData(doctorData);
+        setIsAuthenticated(true);
+        localStorage.setItem("doctorAuth", "true");
+        localStorage.setItem("doctorData", JSON.stringify(doctorData));
+        localStorage.setItem("token", data.data.token);
+  
+        toast({
+          title: "Login successful",
+          description: "Welcome to your MindEase doctor dashboard.",
+        });
+  
+        return true;
+      } else {
+        toast({
+          title: "Login failed",
+          description: data.message || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "An error occurred. Please try again later.",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
+  
 
   const logout = () => {
     setIsAuthenticated(false);
