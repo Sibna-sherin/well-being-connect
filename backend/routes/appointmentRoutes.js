@@ -22,4 +22,5 @@ router.get("/doctor-appointments", authenticate, authorize("doctor"), getDoctorA
 router.patch("/update-status/:id", authenticate, authorize("doctor"), updateAppointmentStatus);
 router.patch("/complete/:id", authenticate, authorize("doctor"), completeAppointment);
 
+
 export default router;

@@ -1,32 +1,28 @@
-
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-// User schema with additional fields for different roles
+// Define user schema
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true, index: true },
   password: { type: String, required: true },
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
   phone: { type: String },
   address: { type: String },
   verified: { type: Boolean, default: false },
-  // Fields for doctors
-  specialty: { type: String }, // For doctors only
-  qualifications: { type: String }, // For doctors only
-  experience: { type: Number }, // For doctors only
-  approved: { type: Boolean, default: false }, // For doctors only
-  consultationFee: { type: Number }, // For doctors only
-  bio: { type: String }, // For doctors only
-  profileImage: { type: String }, // URL to profile image
-  // Common fields
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, {
-  timestamps: true
-});
+  
+  // Fields for doctors only
+  specialty: { type: String, default: "" }, 
+  qualifications: { type: String, default: "" }, 
+  experience: { type: Number, default: 0 },
+  approved: { type: Boolean, default: false }, 
+  consultationFee: { type: Number, default: 0 },
+  bio: { type: String, default: "" }, 
+  profileImage: { type: String, default: "" }, 
+  
+}, { timestamps: true });
 
-// Pre-save middleware to hash password
+// 🔒 Hash password before saving
 userSchema.pre("save", async function(next) {
   if (!this.isModified("password")) return next();
   
@@ -39,12 +35,11 @@ userSchema.pre("save", async function(next) {
   }
 });
 
-// Method to compare passwords
+// 🔐 Compare entered password with hashed password
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Create the User model
+// Create and export User model
 const User = mongoose.model("User", userSchema);
-
 export default User;

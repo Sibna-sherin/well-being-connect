@@ -9,12 +9,18 @@ import appointmentRoutes from "./routes/appointmentRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import recordRoutes from "./routes/recordRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+
+
+// Create Express app
+const app = express();
+
+app.use("/api/admin", adminRoutes);
 
 // Load environment variables
 dotenv.config();
 
-// Create Express app
-const app = express();
+
 
 // Middleware
 app.use(cors());
@@ -40,6 +46,8 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
+
 
 // Health check route
 app.get("/api/health", (req, res) => {
