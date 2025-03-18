@@ -24,7 +24,7 @@ const topDoctors = [
     specialty: "Psychiatrist",
     rating: 4.8,
     reviews: 98,
-    image: "/lovable-uploads/doctorm.png",
+    image: "/lovable-uploads/saleel.jpg",
     specialtyId: "psychiatrists"
   },
   {
@@ -42,7 +42,7 @@ const topDoctors = [
     specialty: "CBT Specialist",
     rating: 4.9,
     reviews: 112,
-    image: "/lovable-uploads/doctorm.png",
+    image: "/lovable-uploads/saleel.jpg",
     specialtyId: "cbt-therapists"
   },
   {

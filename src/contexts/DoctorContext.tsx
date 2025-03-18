@@ -49,7 +49,7 @@ export const DoctorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
   
       const data = await response.json();
-  
+      console.log(data)
       if (response.ok) {
         if (data.data.role !== "doctor") {
           toast({

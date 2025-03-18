@@ -85,7 +85,7 @@ const DoctorDetails = () => {
     specialty: "Clinical Psychologist",
     rating: 4.9,
     reviews: 124,
-    image: "/lovable-uploads/doctorm.png",
+    image: "/lovable-uploads/sabeel.jpg",
     specialtyId: "psychologists",
     verified: true,
     education: "PhD in Clinical Psychology, Stanford University",
