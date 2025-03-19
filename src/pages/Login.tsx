@@ -45,13 +45,22 @@ const Login = () => {
       // Sign in with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+  
       if (user) {
-        // Redirect based on the active tab
-        if (activeTab === "patient") {
+        // Get the user's ID token to check their role
+        const idTokenResult = await user.getIdTokenResult();
+        const userRole = idTokenResult.claims.role; // Assuming the role is stored in the token claims
+  
+        // Redirect based on the user's role
+        if (userRole === "patient") {
           navigate("/dashboard", { replace: true });
-        } else {
+        } else if (userRole === "doctor") {
           navigate("/doctor/dashboard", { replace: true });
+        } else {
+          // Handle unexpected roles (e.g., redirect to a default page or show an error)
+          console.error("Unknown role:", userRole);
+          alert("You do not have a valid role. Please contact support.");
+          await signOut(auth); // Sign out the user if their role is invalid
         }
       }
     } catch (error) {
