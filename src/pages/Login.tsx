@@ -1,4 +1,3 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +9,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Stethoscope } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/config/firebase"; // Import Firebase auth object
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user,role } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,21 +42,21 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      let success;
+      // Sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      if (activeTab === "patient") {
-        // success = await userLogin(email, password);
-         //if (success) {
-          //navigate("/dashboard", { replace: true });
-       // }
-      } else {
-        // success = await doctorLogin(email, password);
-        if (success) {
+      if (user) {
+        // Redirect based on the active tab
+        if (activeTab === "patient") {
+          navigate("/dashboard", { replace: true });
+        } else {
           navigate("/doctor/dashboard", { replace: true });
         }
       }
     } catch (error) {
       console.error("Login error:", error);
+      alert("Failed to sign in. Please check your email and password.");
     } finally {
       setIsLoading(false);
     }
