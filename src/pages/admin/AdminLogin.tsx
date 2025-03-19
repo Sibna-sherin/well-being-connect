@@ -6,16 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAdmin } from "@/contexts/AdminContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
 import { Lock, AlertTriangle } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/config/firebase";
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAdmin();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,11 +26,17 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
-      const success = await login(username, password);
+      const success = await signInWithEmailAndPassword(
+        auth, 
+        email, 
+        password
+      );
+      
+      const user = success.user;
       if (success) {
         navigate("/admin/dashboard");
       } else {
-        setError("Invalid credentials. Please check your username and password.");
+        setError("Invalid credentials. Please check your email and password.");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -61,12 +69,12 @@ const AdminLogin = () => {
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input 
-                id="username" 
+                id="email" 
                 type="email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@mindease.com" 
                 required 
               />

@@ -1,5 +1,5 @@
 
-import { useDoctor } from "@/contexts/DoctorContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import { Link } from "react-router-dom";
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 const DoctorNavigation = () => {
-  const { logout, doctorData } = useDoctor();
+  const { user,userData , handleSignOut} = useAuth();
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-sm z-50 border-b">
@@ -55,12 +55,12 @@ const DoctorNavigation = () => {
         
         <div className="flex items-center space-x-4">
           <div className="text-sm font-medium hidden md:block">
-            {doctorData?.name || 'Doctor'}
+            {userData?.name || 'Doctor'}
           </div>
           
           <div className="flex items-center space-x-1">
             <Button 
-              onClick={logout} 
+              onClick={handleSignOut} 
               variant="ghost" 
               size="sm" 
               className="flex items-center gap-1"

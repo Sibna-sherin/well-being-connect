@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,12 +12,8 @@ import NotFound from "./pages/NotFound";
 import Appointments from "./pages/Appointments";
 import DoctorDetails from "./pages/DoctorDetails";
 import DoctorsList from "./pages/DoctorsList";
-import { AdminProvider } from "./contexts/AdminContext";
-import { UserProvider } from "./contexts/UserContext";
-import { DoctorProvider } from "./contexts/DoctorContext";
-import AdminProtectedRoute from "./components/AdminProtectedRoute";
-import UserProtectedRoute from "./components/UserProtectedRoute";
-import DoctorProtectedRoute from "./components/DoctorProtectedRoute";
+import AuthProvider from "./contexts/AuthContext";
+import AuthRoleRequire from "./components/router/AuthRoleRequire";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DoctorManagement from "./pages/admin/DoctorManagement";
@@ -39,49 +34,63 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AdminProvider>
-            <UserProvider>
-              <DoctorProvider>
+          <AuthProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  
+
                   {/* Protected User Routes */}
-                  <Route element={<UserProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/appointments" element={<Appointments />} />
-                    <Route path="/doctors" element={<DoctorsList />} />
-                    <Route path="/doctors/:specialty" element={<DoctorsList />} />
-                    <Route path="/doctor/:id" element={<DoctorDetails />} />
+                  <Route element={<AuthRoleRequire role={"user"} />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/appointments" element={<Appointments />} />
+                  <Route path="/doctors" element={<DoctorsList />} />
+                  <Route path="/doctors/:specialty" element={<DoctorsList />} />
+                  <Route path="/doctor/:id" element={<DoctorDetails />} />
                   </Route>
-                  
+
                   {/* Doctor Routes */}
-                  <Route element={<DoctorProtectedRoute />}>
-                    <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-                    <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-                    <Route path="/doctor/patients" element={<DoctorPatients />} />
-                    <Route path="/doctor/availability" element={<DoctorAvailability />} />
-                    <Route path="/doctor/profile" element={<DoctorProfile />} />
+                  <Route element={<AuthRoleRequire role={"doctor"} />}>
+                  <Route
+                    path="/doctor/dashboard"
+                    element={<DoctorDashboard />}
+                  />
+                  <Route
+                    path="/doctor/appointments"
+                    element={<DoctorAppointments />}
+                  />
+                  <Route path="/doctor/patients" element={<DoctorPatients />} />
+                  <Route
+                    path="/doctor/availability"
+                    element={<DoctorAvailability />}
+                  />
+                  <Route path="/doctor/profile" element={<DoctorProfile />} />
                   </Route>
-                  
+
                   <Route path="/specialties" element={<Specialties />} />
-                  
+
                   {/* Admin Routes */}
                   <Route path="/admin/login" element={<AdminLogin />} />
-                  
-                  <Route element={<AdminProtectedRoute />}>
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/doctors" element={<DoctorManagement />} />
-                    <Route path="/admin/monitoring" element={<SystemMonitoring />} />
+
+                  <Route element={<AuthRoleRequire role={"admin"} />}>
+                    <Route
+                      path="/admin/dashboard"
+                      element={<AdminDashboard />}
+                    />
+                    <Route
+                      path="/admin/doctors"
+                      element={<DoctorManagement />}
+                    />
+                    <Route
+                      path="/admin/monitoring"
+                      element={<SystemMonitoring />}
+                    />
                     <Route path="/admin/settings" element={<AdminSettings />} />
                   </Route>
-                  
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </DoctorProvider>
-            </UserProvider>
-          </AdminProvider>
+              </AuthProvider>
         </BrowserRouter>
       </div>
     </TooltipProvider>

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
-import { useAdmin } from "@/contexts/AdminContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Sheet, 
   SheetContent, 
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sheet";
 
 const AdminNavigation = () => {
-  const { logout } = useAdmin();
+  const { handleSignOut } = useAuth();
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
@@ -63,7 +63,7 @@ const AdminNavigation = () => {
           <Button
             variant="ghost"
             className="text-gray-600 hover:text-destructive flex items-center gap-2"
-            onClick={logout}
+            onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -114,7 +114,7 @@ const AdminNavigation = () => {
                     className="flex items-center gap-3 px-2 py-2 rounded-md justify-start font-normal hover:bg-gray-100 text-gray-600 hover:text-destructive"
                     onClick={() => {
                       setOpen(false);
-                      logout();
+                      handleSignOut();
                     }}
                   >
                     <LogOut className="h-5 w-5" />

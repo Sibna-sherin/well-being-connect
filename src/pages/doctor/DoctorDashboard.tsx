@@ -2,19 +2,19 @@
 import DoctorNavigation from "@/components/DoctorNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useDoctor } from "@/contexts/DoctorContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Calendar, Clock, Users, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const DoctorDashboard = () => {
-  const { doctorData } = useDoctor();
+  const { userData } = useAuth();
 
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
       <DoctorNavigation />
       
       <div className="container mx-auto px-4 pt-24">
-        <h1 className="text-3xl font-bold mb-2">Welcome, Dr. {doctorData?.name}</h1>
+        <h1 className="text-3xl font-bold mb-2">Welcome, Dr. {userData?.name}</h1>
         <p className="text-gray-600 mb-8">Here's your dashboard overview</p>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

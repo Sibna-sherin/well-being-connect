@@ -9,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser } from "@/contexts/UserContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const UserNavigation = () => {
-  const { logout } = useUser();
+  const { handleSignOut } = useAuth();
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-sm z-50 border-b">
@@ -74,7 +74,7 @@ const UserNavigation = () => {
           <Button 
             variant="outline" 
             className="border-mindease-primary text-mindease-primary hover:bg-mindease-primary hover:text-white"
-            onClick={logout}
+            onClick={handleSignOut}
           >
             Logout
           </Button>

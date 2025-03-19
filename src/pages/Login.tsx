@@ -7,15 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { useState, useEffect } from "react";
-import { useUser } from "@/contexts/UserContext";
-import { useDoctor } from "@/contexts/DoctorContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { User, Stethoscope } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login: userLogin } = useUser();
-  const { login: doctorLogin } = useDoctor();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,12 +45,12 @@ const Login = () => {
       let success;
       
       if (activeTab === "patient") {
-        success = await userLogin(email, password);
+        // success = await userLogin(email, password);
          //if (success) {
           //navigate("/dashboard", { replace: true });
        // }
       } else {
-        success = await doctorLogin(email, password);
+        // success = await doctorLogin(email, password);
         if (success) {
           navigate("/doctor/dashboard", { replace: true });
         }

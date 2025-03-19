@@ -6,18 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useDoctor } from "@/contexts/DoctorContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { User, Mail, BookOpen, Award, Building } from "lucide-react";
 
 const DoctorProfile = () => {
-  const { doctorData } = useDoctor();
+  const { userData } = useAuth();
   
   const [formData, setFormData] = useState({
-    name: doctorData?.name || "",
-    email: doctorData?.email || "",
+    name: userData?.name || "",
+    email: userData?.email || "",
     phone: "+1 (555) 123-4567",
-    specialty: doctorData?.specialty || "Psychologist",
+    specialty: userData?.specialty || "Psychologist",
     education: "Ph.D. in Psychology, Stanford University",
     experience: "10+ years in clinical psychology",
     about: "Experienced psychologist specializing in cognitive behavioral therapy, anxiety disorders, and depression. I believe in a holistic approach to mental health, combining evidence-based techniques with compassionate care.",
