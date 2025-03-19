@@ -52,7 +52,7 @@ const Login = () => {
         const userRole = idTokenResult.claims.role; // Assuming the role is stored in the token claims
   
         // Redirect based on the user's role
-        if (userRole === "patient") {
+        if (userRole === "user") {
           navigate("/dashboard", { replace: true });
         } else if (userRole === "doctor") {
           navigate("/doctor/dashboard", { replace: true });
