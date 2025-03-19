@@ -65,9 +65,6 @@ const Register = () => {
 
     try {
       // Register the user with Firebase
-      const userCredential = await createUserWithEmailAndPassword(auth, patientEmail, patientPassword);
-      const firebaseUser = userCredential.user;
-
       // Register the user with your API
       const response = await fetch(`${API}/register`, {
         method: 'POST',
@@ -77,7 +74,7 @@ const Register = () => {
         body: JSON.stringify({
           name: `${patientFirstName} ${patientLastName}`,
           email: patientEmail,
-          phoneNumber: "", // Add phone number if needed
+          phoneNumber: "1234567890", // Add phone number if needed
           password: patientPassword,
           role: "user",
         }),
@@ -125,9 +122,6 @@ const Register = () => {
 
     try {
       // Register the doctor with Firebase
-      const userCredential = await createUserWithEmailAndPassword(auth, doctorEmail, doctorPassword);
-      const firebaseUser = userCredential.user;
-
       // Register the doctor with your API
       const response = await fetch(`${API}/register`, {
         method: 'POST',
@@ -137,7 +131,7 @@ const Register = () => {
         body: JSON.stringify({
           name: doctorName,
           email: doctorEmail,
-          phoneNumber: "", // Add phone number if needed
+          phoneNumber: "1234567890", // Add phone number if needed
           password: doctorPassword,
           role: "doctor",
           specialty: doctorSpecialty,
