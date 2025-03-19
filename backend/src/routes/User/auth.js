@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Create a new user
 router.post("/register", async (req, res) => {
-  const { name, email, phoneNumber, password,role } = req.body;
+  const { name, email, phoneNumber, password, role, specialty, license } = req.body;
   // Check for missing fields
   if (!name || !email || !phoneNumber || !password) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -29,21 +29,36 @@ router.post("/register", async (req, res) => {
     const userRecord = await auth.createUser({
       email: email,
       password: password,
-     //phoneNumber: phoneNumber,
+      //phoneNumber: phoneNumber,
     });
 
     // ✅ Assign a default role "user" to the newly created user
     await auth.setCustomUserClaims(userRecord.uid, { role: role });
 
-    // ✅ Store user data in Firestore
-    await db.collection("users").doc(userRecord.uid).set({
-      uid: userRecord.uid,
-      name: name,
-      email: email,
-      phoneNumber: phoneNumber,
-      role: role, // Store role in Firestore for reference
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    if (role === "doctor") {
+      // ✅ Store user data in Firestore
+      await db.collection("users").doc(userRecord.uid).set({
+        uid: userRecord.uid,
+        name: name,
+        email: email,
+        phoneNumber: phoneNumber,
+        role: role, // Store role in Firestore for reference
+        status: "pending",
+        specialty: specialty,
+        license: license,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } else {
+      await db.collection("users").doc(userRecord.uid).set({
+        uid: userRecord.uid,
+        name: name,
+        email: email,
+        phoneNumber: phoneNumber,
+        role: role, // Store role in Firestore for reference
+        status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
 
     res.status(200).json({ message: "User created successfully", uid: userRecord.uid });
   } catch (error) {

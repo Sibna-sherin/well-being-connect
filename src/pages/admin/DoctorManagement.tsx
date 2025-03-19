@@ -1,7 +1,12 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminNavigation from "@/components/AdminNavigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,134 +30,144 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Check, Search, X, Eye, FileCheck, AlertTriangle } from "lucide-react";
-
-// Mock data - in a real application, this would be fetched from an API
-const mockDoctors = [
-  {
-    id: 1,
-    name: "Dr. Emily Wilson",
-    email: "emily.wilson@example.com",
-    specialty: "Psychologist",
-    experience: "8 years",
-    status: "pending",
-    date: "2023-06-15",
-    credentials: ["MD Psychology", "Clinical License #12345"],
-  },
-  {
-    id: 2,
-    name: "Dr. James Rodriguez",
-    email: "james.rodriguez@example.com",
-    specialty: "Psychiatrist",
-    experience: "12 years",
-    status: "approved",
-    date: "2023-06-14",
-    credentials: ["MD Psychiatry", "Board Certified"],
-  },
-  {
-    id: 3,
-    name: "Dr. Sarah Chen",
-    email: "sarah.chen@example.com",
-    specialty: "Therapist",
-    experience: "5 years",
-    status: "pending",
-    date: "2023-06-13",
-    credentials: ["MA Therapy", "State License #54321"],
-  },
-  {
-    id: 4,
-    name: "Dr. Michael Brown",
-    email: "michael.brown@example.com",
-    specialty: "Counselor",
-    experience: "7 years",
-    status: "rejected",
-    date: "2023-06-12",
-    credentials: ["PhD Counseling", "Failed verification check"],
-  },
-  {
-    id: 5,
-    name: "Dr. Lisa Taylor",
-    email: "lisa.taylor@example.com",
-    specialty: "Child Psychologist",
-    experience: "10 years",
-    status: "approved",
-    date: "2023-06-11",
-    credentials: ["PhD Child Psychology", "Pediatric Specialist"],
-  },
-];
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "@/config/firebase";
 
 const DoctorManagement = () => {
-  const [doctors, setDoctors] = useState(mockDoctors);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState<typeof mockDoctors[0] | null>(null);
-  const [selectedTab, setSelectedTab] = useState("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<"approve" | "reject" | "view">("view");
+  const [doctors, setDoctors] = useState([]); 
+  const [searchTerm, setSearchTerm] = useState(""); 
+  const [selectedDoctor, setSelectedDoctor] = useState(null); 
+  const [selectedTab, setSelectedTab] = useState("all"); 
+  const [dialogOpen, setDialogOpen] = useState(false); 
+  const [actionType, setActionType] = useState<"approve" | "reject" | "view">(
+    "view"
+  ); // Action type for dialog
 
+  // Fetch doctors from Firestore
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const q = query(collection(db, "users"), where("role", "==", "doctor"));
+        const querySnapshot = await getDocs(q);
+        const doctorsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id, // Include document ID
+          ...doc.data(), // Spread the document data
+        }));
+        console.log(doctorsData);
+        setDoctors(doctorsData); // Set doctors state
+      } catch (error) {
+        console.error("Error fetching doctors: ", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch doctors. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchDoctors();
+  }, []);
+
+  // Filter doctors based on search term and selected tab
   const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          doctor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (selectedTab === "all") return matchesSearch;
     return doctor.status === selectedTab && matchesSearch;
   });
 
-  const handleApprove = (doctor: typeof mockDoctors[0]) => {
+  // Handle approve action
+  const handleApprove = (doctor) => {
     setSelectedDoctor(doctor);
     setActionType("approve");
     setDialogOpen(true);
   };
 
-  const handleReject = (doctor: typeof mockDoctors[0]) => {
+  // Handle reject action
+  const handleReject = (doctor) => {
     setSelectedDoctor(doctor);
     setActionType("reject");
     setDialogOpen(true);
   };
 
-  const handleViewDetails = (doctor: typeof mockDoctors[0]) => {
+  // Handle view details action
+  const handleViewDetails = (doctor) => {
     setSelectedDoctor(doctor);
     setActionType("view");
     setDialogOpen(true);
   };
 
-  const confirmAction = () => {
+  // Confirm action (approve/reject)
+  const confirmAction = async () => {
     if (!selectedDoctor) return;
-    
-    const updatedDoctors = doctors.map(doctor => {
-      if (doctor.id === selectedDoctor.id) {
-        return { 
-          ...doctor, 
-          status: actionType === "approve" ? "approved" : actionType === "reject" ? "rejected" : doctor.status 
-        };
-      }
-      return doctor;
-    });
-    
-    setDoctors(updatedDoctors);
-    setDialogOpen(false);
-    
-    if (actionType === "approve") {
-      toast({
-        title: "Doctor approved",
-        description: `${selectedDoctor.name}'s registration has been approved.`,
+
+    try {
+      const doctorRef = doc(db, "users", selectedDoctor.id);
+      await updateDoc(doctorRef, {
+        status: actionType === "approve" ? "approved" : "rejected",
       });
-    } else if (actionType === "reject") {
+
+      // Update local state
+      const updatedDoctors = doctors.map((doctor) =>
+        doctor.id === selectedDoctor.id
+          ? {
+              ...doctor,
+              status: actionType === "approve" ? "approved" : "rejected",
+            }
+          : doctor
+      );
+      setDoctors(updatedDoctors);
+      setDialogOpen(false);
+
+      // Show toast notification
       toast({
-        title: "Doctor rejected",
-        description: `${selectedDoctor.name}'s registration has been rejected.`,
+        title: `Doctor ${actionType === "approve" ? "approved" : "rejected"}`,
+        description: `${selectedDoctor.name}'s registration has been ${
+          actionType === "approve" ? "approved" : "rejected"
+        }.`,
+        variant: actionType === "approve" ? "default" : "destructive",
+      });
+    } catch (error) {
+      console.error("Error updating doctor status: ", error);
+      toast({
+        title: "Error",
+        description: "Failed to update doctor status. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  // Get status badge based on doctor status
+  const getStatusBadge = (status) => {
     switch (status) {
       case "pending":
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>;
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            Pending
+          </span>
+        );
       case "approved":
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>;
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Approved
+          </span>
+        );
       case "rejected":
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>;
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            Rejected
+          </span>
+        );
       default:
         return null;
     }
@@ -161,11 +176,15 @@ const DoctorManagement = () => {
   return (
     <div className="min-h-screen bg-mindease-background">
       <AdminNavigation />
-      
+
       <div className="container mx-auto px-4 pt-24 pb-16">
-        <h1 className="text-3xl font-bold mb-2">Doctor Registration Management</h1>
-        <p className="text-gray-600 mb-8">Review and approve healthcare provider applications</p>
-        
+        <h1 className="text-3xl font-bold mb-2">
+          Doctor Registration Management
+        </h1>
+        <p className="text-gray-600 mb-8">
+          Review and approve healthcare provider applications
+        </p>
+
         <Card className="mb-8">
           <CardHeader className="pb-3">
             <CardTitle>Doctor Registrations</CardTitle>
@@ -184,9 +203,9 @@ const DoctorManagement = () => {
                   className="pl-10"
                 />
               </div>
-              
-              <Tabs 
-                value={selectedTab} 
+
+              <Tabs
+                value={selectedTab}
                 onValueChange={setSelectedTab}
                 className="w-full sm:w-auto"
               >
@@ -197,7 +216,7 @@ const DoctorManagement = () => {
                 </TabsList>
               </Tabs>
             </div>
-            
+
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -212,14 +231,22 @@ const DoctorManagement = () => {
                 <TableBody>
                   {filteredDoctors.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-gray-500"
+                      >
                         No doctor registrations found
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredDoctors.map((doctor) => (
-                      <TableRow key={doctor.id} className="cursor-pointer hover:bg-gray-50">
-                        <TableCell className="font-medium">{doctor.name}</TableCell>
+                      <TableRow
+                        key={doctor.id}
+                        className="cursor-pointer hover:bg-gray-50"
+                      >
+                        <TableCell className="font-medium">
+                          {doctor.name}
+                        </TableCell>
                         <TableCell>{doctor.specialty}</TableCell>
                         <TableCell>{doctor.date}</TableCell>
                         <TableCell>{getStatusBadge(doctor.status)}</TableCell>
@@ -234,7 +261,7 @@ const DoctorManagement = () => {
                               <Eye className="h-4 w-4" />
                               <span className="sr-only">View details</span>
                             </Button>
-                            
+
                             {doctor.status === "pending" && (
                               <>
                                 <Button
@@ -268,7 +295,8 @@ const DoctorManagement = () => {
           </CardContent>
         </Card>
       </div>
-      
+
+      {/* Alert Dialog for Actions */}
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           {actionType === "view" && selectedDoctor && (
@@ -297,8 +325,10 @@ const DoctorManagement = () => {
                   <div>
                     <h3 className="font-medium">Credentials</h3>
                     <ul className="list-disc ml-5 mt-2">
-                      {selectedDoctor.credentials.map((credential, index) => (
-                        <li key={index} className="text-sm">{credential}</li>
+                      {selectedDoctor.credentials?.map((credential, index) => (
+                        <li key={index} className="text-sm">
+                          {credential}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -319,8 +349,8 @@ const DoctorManagement = () => {
                       <X className="mr-2 h-4 w-4" />
                       Reject
                     </Button>
-                    <Button 
-                      className="bg-green-600 hover:bg-green-700" 
+                    <Button
+                      className="bg-green-600 hover:bg-green-700"
                       onClick={() => {
                         setActionType("approve");
                         confirmAction();
@@ -340,17 +370,23 @@ const DoctorManagement = () => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Approve Doctor</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to approve {selectedDoctor.name}'s registration? 
-                  They will be able to offer services on the platform.
+                  Are you sure you want to approve {selectedDoctor.name}'s
+                  registration? They will be able to offer services on the
+                  platform.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="py-2 flex items-center">
                 <FileCheck className="h-5 w-5 mr-2 text-green-600" />
-                <span className="text-sm">All credentials have been verified</span>
+                <span className="text-sm">
+                  All credentials have been verified
+                </span>
               </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmAction} className="bg-green-600 hover:bg-green-700">
+                <AlertDialogAction
+                  onClick={confirmAction}
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   Approve
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -362,18 +398,20 @@ const DoctorManagement = () => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Reject Doctor</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to reject {selectedDoctor.name}'s registration? 
-                  They will be notified of this decision.
+                  Are you sure you want to reject {selectedDoctor.name}'s
+                  registration? They will be notified of this decision.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="py-2 flex items-center">
                 <AlertTriangle className="h-5 w-5 mr-2 text-yellow-600" />
-                <span className="text-sm">This action cannot be easily undone</span>
+                <span className="text-sm">
+                  This action cannot be easily undone
+                </span>
               </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={confirmAction} 
+                <AlertDialogAction
+                  onClick={confirmAction}
                   className="bg-destructive hover:bg-destructive/90"
                 >
                   Reject

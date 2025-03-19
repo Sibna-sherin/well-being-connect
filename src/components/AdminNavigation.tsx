@@ -28,7 +28,7 @@ const AdminNavigation = () => {
   const navigation = [
     { name: "Dashboard", href: "/admin/dashboard", icon: Home },
     { name: "Doctor Registrations", href: "/admin/doctors", icon: UserCheck },
-    { name: "System Monitoring", href: "/admin/monitoring", icon: Activity },
+    // { name: "System Monitoring", href: "/admin/monitoring", icon: Activity },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
