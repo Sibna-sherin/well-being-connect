@@ -8,7 +8,7 @@ import Navigation from "@/components/Navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Stethoscope } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword , signOut } from "firebase/auth";
 import { auth } from "@/config/firebase"; // Import Firebase auth object
 
 const Login = () => {
