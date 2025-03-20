@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Brain, UserCog, UserRound, HeartHandshake, Baby, Bomb, Wine, Leaf, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Specialty {
   id: number;
@@ -88,7 +89,10 @@ const specialties: Specialty[] = [
 
 const Specialties = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
-
+  const navigate = useNavigate();
+  const handleSelect = (specialty: Specialty) => {
+    navigate(`/doctors/${specialty.title.toLowerCase()}`);
+  };
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
       <UserNavigation />
@@ -113,7 +117,7 @@ const Specialties = () => {
                 <p className="text-gray-700 mb-4">{specialty.details}</p>
                 <Button 
                   className="w-full bg-mindease-primary hover:bg-mindease-primary/90"
-                  onClick={() => setSelectedSpecialty(specialty)}
+                  onClick={() => handleSelect(specialty)}
                 >
                   Find Specialists
                 </Button>

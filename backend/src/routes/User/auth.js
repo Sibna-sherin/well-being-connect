@@ -5,7 +5,8 @@ const router = express.Router();
 
 // Create a new user
 router.post("/register", async (req, res) => {
-  const { name, email, phoneNumber, password, role, specialty, license } = req.body;
+  const { name, email, phoneNumber, password, role, specialty, license ,image,specialtyId,education,experience,about} = req.body;
+ 
   // Check for missing fields
   if (!name || !email || !phoneNumber || !password) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -46,6 +47,14 @@ router.post("/register", async (req, res) => {
         status: "pending",
         specialty: specialty,
         license: license,
+        rating: 0,
+        reviews: [],
+        image: image,
+        specialtyId: specialtyId,
+        verified: false,
+        education: education,
+        experience: experience,
+        about: about,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } else {
@@ -55,7 +64,7 @@ router.post("/register", async (req, res) => {
         email: email,
         phoneNumber: phoneNumber,
         role: role, // Store role in Firestore for reference
-        status: "pending",
+        // status: "pending",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     }

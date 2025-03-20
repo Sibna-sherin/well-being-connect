@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import DoctorNavigation from "@/components/DoctorNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,7 @@ import { User, Mail, BookOpen, Award, Building } from "lucide-react";
 
 const DoctorProfile = () => {
   const { userData } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     name: userData?.name || "",
     email: userData?.email || "",
@@ -20,47 +19,52 @@ const DoctorProfile = () => {
     specialty: userData?.specialty || "Psychologist",
     education: "Ph.D. in Psychology, Stanford University",
     experience: "10+ years in clinical psychology",
-    about: "Experienced psychologist specializing in cognitive behavioral therapy, anxiety disorders, and depression. I believe in a holistic approach to mental health, combining evidence-based techniques with compassionate care.",
+    about:
+      "Experienced psychologist specializing in cognitive behavioral therapy, anxiety disorders, and depression. I believe in a holistic approach to mental health, combining evidence-based techniques with compassionate care.",
     address: "123 Medical Center Blvd, Suite 456, San Francisco, CA 94143",
-    languages: "English, Spanish"
+    languages: "English, Spanish",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleSave = () => {
     toast({
       title: "Profile updated",
-      description: "Your profile information has been saved successfully."
+      description: "Your profile information has been saved successfully.",
     });
   };
 
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
       <DoctorNavigation />
-      
+
       <div className="container mx-auto px-4 pt-24">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Doctor Profile</h1>
-            <p className="text-gray-600">Manage your professional information</p>
+            <p className="text-gray-600">
+              Manage your professional information
+            </p>
           </div>
-          
-          <div className="mt-4 md:mt-0">
+
+          {/* <div className="mt-4 md:mt-0">
             <Button 
               onClick={handleSave}
               className="bg-mindease-primary hover:bg-mindease-primary/90"
             >
               Save Changes
             </Button>
-          </div>
+          </div> */}
         </div>
-        
+
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-1">
             <Card>
@@ -71,10 +75,10 @@ const DoctorProfile = () => {
                 <div className="w-32 h-32 rounded-full bg-mindease-primary flex items-center justify-center text-white text-3xl mb-4">
                   {formData.name.charAt(0)}
                 </div>
-                <Button variant="outline" className="w-full">Change Photo</Button>
+                {/* <Button variant="outline" className="w-full">Change Photo</Button> */}
               </CardContent>
             </Card>
-            
+
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
@@ -87,7 +91,7 @@ const DoctorProfile = () => {
                     <p className="text-sm text-gray-500">Email</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start">
                   <User className="h-5 w-5 text-gray-500 mr-3 mt-0.5" />
                   <div>
@@ -95,7 +99,7 @@ const DoctorProfile = () => {
                     <p className="text-sm text-gray-500">Phone</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start">
                   <Building className="h-5 w-5 text-gray-500 mr-3 mt-0.5" />
                   <div>
@@ -106,7 +110,7 @@ const DoctorProfile = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
@@ -116,27 +120,30 @@ const DoctorProfile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="name"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="specialty">Specialty</Label>
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="specialty"
                       name="specialty"
                       value={formData.specialty}
                       onChange={handleChange}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="email"
                       name="email"
                       type="email"
@@ -144,20 +151,22 @@ const DoctorProfile = () => {
                       onChange={handleChange}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="phone"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="languages">Languages</Label>
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="languages"
                       name="languages"
                       value={formData.languages}
@@ -167,7 +176,7 @@ const DoctorProfile = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Professional Details</CardTitle>
@@ -177,7 +186,8 @@ const DoctorProfile = () => {
                   <Label htmlFor="education">Education</Label>
                   <div className="flex items-center">
                     <BookOpen className="h-5 w-5 text-gray-500 mr-2" />
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="education"
                       name="education"
                       value={formData.education}
@@ -185,12 +195,13 @@ const DoctorProfile = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="experience">Experience</Label>
                   <div className="flex items-center">
                     <Award className="h-5 w-5 text-gray-500 mr-2" />
-                    <Input 
+                    <Input
+                      disabled={true}
                       id="experience"
                       name="experience"
                       value={formData.experience}
@@ -198,10 +209,11 @@ const DoctorProfile = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="about">About</Label>
-                  <Textarea 
+                  <Textarea
+                    disabled={true}
                     id="about"
                     name="about"
                     value={formData.about}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import UserNavigation from "@/components/UserNavigation";
 import { Button } from "@/components/ui/button";
@@ -27,45 +27,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, MapPin, Star, Check, BadgeCheck, Mail } from "lucide-react";
+import {
+  CalendarIcon,
+  Clock,
+  MapPin,
+  Star,
+  Check,
+  BadgeCheck,
+  Mail,
+} from "lucide-react";
 import DoctorCard from "@/components/DoctorCard";
 import { toast } from "@/hooks/use-toast";
-
-// Mock data for related doctors
-const relatedDoctors = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialty: "Psychologist",
-    rating: 4.9,
-    reviews: 124,
-    image: "/lovable-uploads/doctorf.png",
-    specialtyId: "psychologists"
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    specialty: "Psychiatrist",
-    rating: 4.8,
-    reviews: 98,
-    image: "/lovable-uploads/doctorm.png",
-    specialtyId: "psychiatrists"
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Rodriguez",
-    specialty: "Therapist",
-    rating: 4.7,
-    reviews: 87,
-    image: "/lovable-uploads/doctorf.png",
-    specialtyId: "therapists"
-  },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/config/firebase"; // Import Firestore instance
+import {
+  collection,
+  addDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  query,
+  where,
+  getDocs,
+  limit,
+} from "firebase/firestore"; // Firestore functions
 
 // Mock data for time slots
 const timeSlots = [
-  "09:00 AM", "10:00 AM", "11:00 AM", "01:00 PM", 
-  "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
+  "09:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "01:00 PM",
+  "02:00 PM",
+  "03:00 PM",
+  "04:00 PM",
+  "05:00 PM",
 ];
 
 const DoctorDetails = () => {
@@ -77,20 +74,57 @@ const DoctorDetails = () => {
   const [phone, setPhone] = useState("");
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
+  const { user, userData } = useAuth();
+  const [doctor, setDoctor] = useState<any>(null); // State to store doctor details
+  const [relatedDoctors, setRelatedDoctors] = useState<any[]>([]); // State to store related doctors
 
-  // Mock doctor data (would normally be fetched based on id)
-  const doctor = {
-    id: Number(id),
-    name: "Dr. Richard James",
-    specialty: "Clinical Psychologist",
-    rating: 4.9,
-    reviews: 124,
-    image: "/lovable-uploads/sabeel.jpg",
-    specialtyId: "psychologists",
-    verified: true,
-    education: "PhD in Clinical Psychology, Stanford University",
-    experience: "15+ years in mental health counseling",
-    about: "Dr. Richard James is a compassionate and experienced psychologist specializing in anxiety disorders, depression, and trauma recovery. He uses evidence-based approaches to help patients develop coping strategies and achieve mental wellness."
+  // Fetch doctor details from Firestore
+  useEffect(() => {
+    const fetchDoctor = async () => {
+      if (!id) return;
+
+      try {
+        const doctorDoc = await getDoc(doc(db, "users", id));
+        if (doctorDoc.exists()) {
+          setDoctor({ id: doctorDoc.id, ...doctorDoc.data() });
+          fetchRelatedDoctors(doctorDoc.data().specialty);
+        } else {
+          toast({
+            title: "Doctor Not Found",
+            description: "The doctor you are looking for does not exist.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching doctor:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch doctor details.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchDoctor();
+  }, [id]);
+
+  const fetchRelatedDoctors = async (specialty) => {
+    try {
+      const doctorsSnapshot = await getDocs(
+        query(
+          collection(db, "doctors"),
+          where("specialty", "==", specialty),
+          limit(3)
+        )
+      );
+      const doctorsData = doctorsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRelatedDoctors(doctorsData);
+    } catch (error) {
+      console.error("Error fetching related doctors:", error);
+    }
   };
 
   const handleBookAppointment = () => {
@@ -108,51 +142,80 @@ const DoctorDetails = () => {
       });
       return;
     }
-    
+
     setIsBooking(true);
-    
+
     try {
-      // Simulate API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Add appointment data to Firestore
+      const appointmentsCollection = collection(db, "appointments");
+      const appointmentRef = await addDoc(appointmentsCollection, {
+        doctorId: doctor.id,
+        doctorName: doctor.name,
+        patientName: name,
+        patientEmail: email,
+        patientPhone: phone,
+        date: format(date!, "yyyy-MM-dd"),
+        time: selectedTimeSlot,
+        status: "booked", // You can add more statuses like "completed", "cancelled", etc.
+        createdAt: new Date().toISOString(),
+      });
+
+      // Add the appointment ID to the user's document in Firestore
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+          appointments: arrayUnion(appointmentRef.id), // Add the appointment ID to the user's appointments array
+        });
+      }
+
       // Close the dialog
       setIsConfirmDialogOpen(false);
       setIsBooking(false);
-      
+
       // Show success message
       toast({
         title: "Appointment Booked!",
-        description: `Your appointment with ${doctor.name} on ${format(date!, "PPP")} at ${selectedTimeSlot} has been booked. A confirmation email has been sent to ${email}.`,
+        description: `Your appointment with ${doctor.name} on ${format(
+          date!,
+          "PPP"
+        )} at ${selectedTimeSlot} has been booked. A confirmation email has been sent to ${email}.`,
       });
-      
+
       // Clear form state
       setDate(undefined);
       setSelectedTimeSlot(null);
-      
+      setName("");
+      setEmail("");
+      setPhone("");
+
       // Simulate sending an email
       console.log("Sending confirmation email to:", email, {
         doctor: doctor.name,
         date: format(date!, "PPP"),
         time: selectedTimeSlot,
         patientName: name,
-        patientPhone: phone
+        patientPhone: phone,
       });
-      
     } catch (error) {
       console.error("Error booking appointment:", error);
       toast({
         title: "Booking Failed",
-        description: "There was an issue booking your appointment. Please try again.",
+        description:
+          "There was an issue booking your appointment. Please try again.",
         variant: "destructive",
       });
       setIsBooking(false);
     }
   };
 
+  if (!doctor) {
+    return <div>Loading...</div>; // Show loading state while fetching doctor details
+  }
+
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
       <UserNavigation />
-      
+
       <div className="container mx-auto px-4 pt-24">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Doctor Profile Section */}
@@ -161,9 +224,9 @@ const DoctorDetails = () => {
               <CardContent className="p-6">
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
-                    <img 
-                      src={doctor.image} 
-                      alt={doctor.name} 
+                    <img
+                      src={doctor.image}
+                      alt={doctor.name}
                       className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-md"
                     />
                     {doctor.verified && (
@@ -172,36 +235,50 @@ const DoctorDetails = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <h1 className="text-2xl font-bold flex items-center gap-2">
                     {doctor.name}
-                    {doctor.verified && <BadgeCheck size={16} className="text-mindease-primary" />}
+                    {doctor.verified && (
+                      <BadgeCheck size={16} className="text-mindease-primary" />
+                    )}
                   </h1>
                   <p className="text-gray-600 mb-2">{doctor.specialty}</p>
-                  
+
                   <div className="flex items-center mb-4">
                     <Star className="fill-yellow-400 stroke-yellow-400 h-4 w-4 mr-1" />
                     <span className="font-medium">{doctor.rating}</span>
-                    <span className="text-xs ml-1 text-gray-500">({doctor.reviews} reviews)</span>
+                    <span className="text-xs ml-1 text-gray-500">
+                      ({doctor.reviews} reviews)
+                    </span>
                   </div>
-                  
+
                   <div className="w-full space-y-4 mb-6">
                     <div className="flex items-start">
-                      <Check size={16} className="text-mindease-primary mr-2 mt-1" />
+                      <Check
+                        size={16}
+                        className="text-mindease-primary mr-2 mt-1"
+                      />
                       <div>
                         <p className="font-medium">Education</p>
-                        <p className="text-sm text-gray-600">{doctor.education}</p>
+                        <p className="text-sm text-gray-600">
+                          {doctor.education}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
-                      <Check size={16} className="text-mindease-primary mr-2 mt-1" />
+                      <Check
+                        size={16}
+                        className="text-mindease-primary mr-2 mt-1"
+                      />
                       <div>
                         <p className="font-medium">Experience</p>
-                        <p className="text-sm text-gray-600">{doctor.experience}</p>
+                        <p className="text-sm text-gray-600">
+                          {doctor.experience}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="w-full">
                     <h3 className="font-semibold mb-2">About</h3>
                     <p className="text-sm text-gray-700">{doctor.about}</p>
@@ -210,14 +287,15 @@ const DoctorDetails = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Booking Section */}
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
                 <CardTitle>Book Appointment</CardTitle>
                 <CardDescription>
-                  Select a date and time slot to schedule your appointment with {doctor.name}
+                  Select a date and time slot to schedule your appointment with{" "}
+                  {doctor.name}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -252,18 +330,20 @@ const DoctorDetails = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
-                
+
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium mb-3">Available Time Slots</h3>
+                  <h3 className="text-lg font-medium mb-3">
+                    Available Time Slots
+                  </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {timeSlots.map((time) => (
-                      <Button 
+                      <Button
                         key={time}
                         variant="outline"
                         className={cn(
                           "justify-center",
-                          selectedTimeSlot === time 
-                            ? "bg-mindease-primary text-white hover:bg-mindease-primary/90" 
+                          selectedTimeSlot === time
+                            ? "bg-mindease-primary text-white hover:bg-mindease-primary/90"
                             : "hover:bg-mindease-primary/10"
                         )}
                         onClick={() => setSelectedTimeSlot(time)}
@@ -274,8 +354,8 @@ const DoctorDetails = () => {
                     ))}
                   </div>
                 </div>
-                
-                <Button 
+
+                <Button
                   className="w-full bg-mindease-primary hover:bg-mindease-primary/90 py-6 h-auto text-lg"
                   onClick={handleBookAppointment}
                   disabled={!date || !selectedTimeSlot}
@@ -284,27 +364,32 @@ const DoctorDetails = () => {
                 </Button>
               </CardContent>
             </Card>
-            
+
             {/* Confirmation Dialog */}
-            <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+            <Dialog
+              open={isConfirmDialogOpen}
+              onOpenChange={setIsConfirmDialogOpen}
+            >
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Confirm Your Appointment</DialogTitle>
                   <DialogDescription>
-                    Please provide your details to book an appointment with {doctor.name} on {date ? format(date, "PPP") : ""} at {selectedTimeSlot}.
+                    Please provide your details to book an appointment with{" "}
+                    {doctor.name} on {date ? format(date, "PPP") : ""} at{" "}
+                    {selectedTimeSlot}.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
                       Name
                     </Label>
-                    <Input 
-                      id="name" 
-                      value={name} 
-                      onChange={(e) => setName(e.target.value)} 
-                      className="col-span-3" 
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="col-span-3"
                       required
                     />
                   </div>
@@ -312,11 +397,11 @@ const DoctorDetails = () => {
                     <Label htmlFor="email" className="text-right">
                       Email
                     </Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="col-span-3"
                       required
                     />
@@ -325,23 +410,23 @@ const DoctorDetails = () => {
                     <Label htmlFor="phone" className="text-right">
                       Phone
                     </Label>
-                    <Input 
-                      id="phone" 
-                      value={phone} 
-                      onChange={(e) => setPhone(e.target.value)} 
+                    <Input
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       className="col-span-3"
                     />
                   </div>
                 </div>
-                
+
                 <DialogFooter>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setIsConfirmDialogOpen(false)}
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={confirmBooking}
                     className="bg-mindease-primary hover:bg-mindease-primary/90"
                     disabled={isBooking}
@@ -358,15 +443,23 @@ const DoctorDetails = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            
+
             {/* Related Doctors Section */}
             <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">Related Specialists</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                Related Specialists
+              </h2>
+              {relatedDoctors.length === 0 ? (
               <div className="grid md:grid-cols-3 gap-4">
                 {relatedDoctors.map((doctor) => (
                   <DoctorCard key={doctor.id} doctor={doctor} />
                 ))}
               </div>
+              ): (
+                <div className="flex items-center justify-center h-32 bg-white rounded-md shadow-md">
+                  No related doctors found.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -16,10 +16,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { User, Stethoscope } from "lucide-react";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/config/firebase";
 
 const Register = () => {
@@ -45,6 +42,12 @@ const Register = () => {
   const [doctorName, setDoctorName] = useState("");
   const [doctorSpecialty, setDoctorSpecialty] = useState("");
   const [doctorLicense, setDoctorLicense] = useState("");
+  const [doctorImage, setDoctorImage] = useState<File | null>(null);
+  const [doctorSpecialtyId, setDoctorSpecialtyId] = useState("");
+  const [doctorEducation, setDoctorEducation] = useState("");
+  const [doctorExperience, setDoctorExperience] = useState("");
+  const [doctorAbout, setDoctorAbout] = useState("");
+  const [doctorImageUrl, setDoctorImageUrl] = useState<string | null>(null);
 
   // Check for role parameter in URL
   useEffect(() => {
@@ -59,20 +62,38 @@ const Register = () => {
     setActiveTab(value);
   };
 
+  const specialties = [
+    { title: "Psychologists", value: "psychologists" },
+    { title: "Psychiatrists", value: "psychiatrists" },
+    { title: "Therapists", value: "therapists" },
+    { title: "Counselors", value: "counselors" },
+    { title: "Child Psychologists", value: "child-psychologists" },
+    { title: "Trauma Specialists", value: "trauma-specialists" },
+    { title: "Addiction Specialists", value: "addiction-specialists" },
+    { title: "CBT Therapists", value: "cbt-therapists" },
+    { title: "Mindfulness Coaches", value: "mindfulness-coaches" },
+    { title: "Life Coaches", value: "life-coaches" },
+  ];
+
   const resetFields = () => {
-    setPatientEmail("")
-    setPatientConfirmPassword("")
-    setPatientPassword("")
-    setPatientFirstName("")
-    setPatientLastName("")
-    setMobile("")
-    setDoctorEmail("")
-    setDoctorPassword("")
-    setDoctorConfirmPassword("")
-    setDoctorName("")
-    setDoctorSpecialty("")
-    setDoctorLicense("")
-  }
+    setPatientEmail("");
+    setPatientConfirmPassword("");
+    setPatientPassword("");
+    setPatientFirstName("");
+    setPatientLastName("");
+    setMobile("");
+    setDoctorEmail("");
+    setDoctorPassword("");
+    setDoctorConfirmPassword("");
+    setDoctorName("");
+    setDoctorSpecialty("");
+    setDoctorLicense("");
+    setDoctorImage(null);
+    setDoctorSpecialtyId("");
+    setDoctorEducation("");
+    setDoctorExperience("");
+    setDoctorAbout("");
+  };
 
   const handlePatientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +103,16 @@ const Register = () => {
       toast({
         title: "Passwords don't match",
         description: "Please ensure your passwords match.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!patientEmail || !patientFirstName || !patientLastName) {
+      toast({
+        title: "Missing information",
+        description: "Please fill out all required fields.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -131,6 +162,45 @@ const Register = () => {
     }
   };
 
+  // Upload image to Cloudinary
+  const handleImageUpload = async (file: File) => {
+    if (!file) return null;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "mindease"); // Using the same preset as in original code
+
+    try {
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dvtcrhqhm/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Cloudinary Response:", data);
+
+      return data.secure_url || null;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      return null;
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDoctorImage(file);
+      setDoctorImageUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleDoctorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -143,6 +213,30 @@ const Register = () => {
       });
       setIsLoading(false);
       return;
+    }
+    if (!doctorEmail || !doctorName || !doctorSpecialty || !doctorLicense) {
+      toast({
+        title: "Missing information",
+        description: "Please fill out all required fields.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (doctorImage) {
+      const imageUrl = await handleImageUpload(doctorImage);
+      if (imageUrl) {
+        setDoctorImageUrl(imageUrl);
+      } else {
+        toast({
+          title: "Image upload failed",
+          description: "There was a problem uploading your image.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
     }
 
     try {
@@ -161,6 +255,11 @@ const Register = () => {
           role: "doctor",
           specialty: doctorSpecialty,
           license: doctorLicense,
+          image: doctorImageUrl,
+          specialtyId: doctorSpecialtyId,
+          education: doctorEducation,
+          experience: doctorExperience,
+          about: doctorAbout,
         }),
       });
 
@@ -195,7 +294,7 @@ const Register = () => {
       <Navigation />
 
       <div className="container mx-auto px-4 pt-32 pb-16">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-xl mx-auto">
           <Card>
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl text-center">
@@ -335,8 +434,8 @@ const Register = () => {
 
                 <TabsContent value="doctor">
                   <form onSubmit={handleDoctorSubmit}>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
+                    <div className=" grid grid-cols-2 gap-10 w-full">
+                      <div className="">
                         <Label htmlFor="doctorName">Full Name</Label>
                         <Input
                           id="doctorName"
@@ -346,7 +445,7 @@ const Register = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="">
                         <Label htmlFor="mobile">Mobile</Label>
                         <Input
                           id="mobile"
@@ -356,17 +455,29 @@ const Register = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="">
                         <Label htmlFor="doctorSpecialty">Specialty</Label>
-                        <Input
+                        <select
                           id="doctorSpecialty"
-                          placeholder="Psychologist"
                           value={doctorSpecialty}
                           onChange={(e) => setDoctorSpecialty(e.target.value)}
+                          className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-mindease-primary"
                           required
-                        />
+                        >
+                          <option value="" disabled>
+                            Select a specialty
+                          </option>
+                          {specialties.map((specialty) => (
+                            <option
+                              key={specialty.value}
+                              value={specialty.value}
+                            >
+                              {specialty.title}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <div className="space-y-2">
+                      <div className="">
                         <Label htmlFor="doctorLicense">License Number</Label>
                         <Input
                           id="doctorLicense"
@@ -376,7 +487,68 @@ const Register = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
+
+                      <div className="">
+                        <Label htmlFor="doctorSpecialtyId">Specialty ID</Label>
+                        <Input
+                          id="doctorSpecialtyId"
+                          placeholder="psychologists"
+                          value={doctorSpecialtyId}
+                          onChange={(e) => setDoctorSpecialtyId(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="">
+                        <Label htmlFor="doctorEducation">Education</Label>
+                        <Input
+                          id="doctorEducation"
+                          placeholder="PhD in Clinical Psychology, Stanford University"
+                          value={doctorEducation}
+                          onChange={(e) => setDoctorEducation(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <Label htmlFor="doctorExperience">Experience</Label>
+                        <Input
+                          id="doctorExperience"
+                          placeholder="15+ years in mental health counseling"
+                          value={doctorExperience}
+                          onChange={(e) => setDoctorExperience(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <Label htmlFor="doctorAbout">About</Label>
+                        <Input
+                          id="doctorAbout"
+                          placeholder="Dr. Richard James is a compassionate and experienced psychologist specializing in anxiety disorders, depression, and trauma recovery. He uses evidence-based approaches to help patients develop coping strategies and achieve mental wellness."
+                          value={doctorAbout}
+                          onChange={(e) => setDoctorAbout(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="">
+                        <Label htmlFor="doctorImage">your Image </Label>
+                        <Input
+                          id="doctorImage"
+                          type="file"
+                          onChange={(e) => handleFileChange(e)}
+                          required
+                        />
+                      </div>
+                      {doctorImageUrl && (
+                        <div className="mt-4">
+                          <img
+                            src={doctorImageUrl}
+                            alt="Preview"
+                            className="w-40 h-40 rounded-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="">
                         <Label htmlFor="doctorEmail">Email</Label>
                         <Input
                           id="doctorEmail"
@@ -387,7 +559,7 @@ const Register = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="">
                         <Label htmlFor="doctorPassword">Password</Label>
                         <Input
                           id="doctorPassword"
@@ -397,7 +569,7 @@ const Register = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="">
                         <Label htmlFor="doctorConfirmPassword">
                           Confirm password
                         </Label>
@@ -411,35 +583,37 @@ const Register = () => {
                           required
                         />
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="doctorTerms" required />
-                        <label
-                          htmlFor="doctorTerms"
-                          className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      <div className="flex w-full flex-col gap-4 col-span-2">
+                        <div className="flex items-center space-x-2 w-full">
+                          <Checkbox id="doctorTerms" required />
+                          <label
+                            htmlFor="doctorTerms"
+                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            I agree to the{" "}
+                            <Link
+                              to="/terms"
+                              className="text-mindease-primary hover:underline"
+                            >
+                              terms of service
+                            </Link>{" "}
+                            and{" "}
+                            <Link
+                              to="/privacy"
+                              className="text-mindease-primary hover:underline"
+                            >
+                              privacy policy
+                            </Link>
+                          </label>
+                        </div>
+                        <Button
+                          type="submit"
+                          className="w-full bg-mindease-primary hover:bg-mindease-primary/90"
+                          disabled={isLoading}
                         >
-                          I agree to the{" "}
-                          <Link
-                            to="/terms"
-                            className="text-mindease-primary hover:underline"
-                          >
-                            terms of service
-                          </Link>{" "}
-                          and{" "}
-                          <Link
-                            to="/privacy"
-                            className="text-mindease-primary hover:underline"
-                          >
-                            privacy policy
-                          </Link>
-                        </label>
+                          {isLoading ? "Creating account..." : "Create account"}
+                        </Button>
                       </div>
-                      <Button
-                        type="submit"
-                        className="w-full bg-mindease-primary hover:bg-mindease-primary/90"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Creating account..." : "Create account"}
-                      </Button>
                     </div>
                   </form>
                 </TabsContent>

@@ -1,4 +1,3 @@
-
 import { Brain, Heart, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
@@ -6,71 +5,53 @@ import FeatureCard from "@/components/FeatureCard";
 import SpecialtiesSection from "@/components/SpecialtiesSection";
 import { Link } from "react-router-dom";
 import DoctorCard from "@/components/DoctorCard";
-
-// Mock data for top doctors
-const topDoctors = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialty: "Psychologist",
-    rating: 4.9,
-    reviews: 124,
-    image: "/lovable-uploads/doctorf.png",
-    specialtyId: "psychologists"
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    specialty: "Psychiatrist",
-    rating: 4.8,
-    reviews: 98,
-    image: "/lovable-uploads/saleel.jpg",
-    specialtyId: "psychiatrists"
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Rodriguez",
-    specialty: "Therapist",
-    rating: 4.7,
-    reviews: 87,
-    image: "/lovable-uploads/doctorf.png",
-    specialtyId: "therapists"
-  },
-  {
-    id: 4,
-    name: "Dr. David Kim",
-    specialty: "CBT Specialist",
-    rating: 4.9,
-    reviews: 112,
-    image: "/lovable-uploads/saleel.jpg",
-    specialtyId: "cbt-therapists"
-  },
-  {
-    id: 5,
-    name: "Dr. Jennifer Lee",
-    specialty: "Child Psychologist",
-    rating: 4.8,
-    reviews: 75,
-    image: "/lovable-uploads/doctorf.png",
-    specialtyId: "child-psychologists"
-  },
-];
+import { db } from "@/config/firebase";
+import { useEffect, useState } from "react";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 const Index = () => {
+  const [topDoctors, setTopDoctors] = useState<any[]>([]); // State to store fetched doctors
+
+  // Fetch approved doctors from Firestore
+  useEffect(() => {
+    const fetchApprovedDoctors = async () => {
+      try {
+        const usersCollection = collection(db, "users");
+        const q = query(usersCollection, where("status", "==", "approved")); // Query for approved doctors
+        const querySnapshot = await getDocs(q);
+
+        const doctors: any[] = [];
+        querySnapshot.forEach((doc) => {
+          doctors.push({ id: doc.id, ...doc.data() }); // Add doctor data to the array
+        });
+
+        setTopDoctors(doctors.slice(0, 6)); // Limit to 6 doctors
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+      }
+    };
+
+    fetchApprovedDoctors();
+  }, []);
+
   return (
     <div className="min-h-screen bg-mindease-background">
       <Navigation />
-      
+
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4">
         <div className="container mx-auto flex flex-col md:flex-row items-center animate-fade-down">
           <div className="md:w-1/2 text-left mb-8 md:mb-0 md:pr-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Book Appointment<br />
-              <span className="text-mindease-primary">With Trusted Specialists</span>
+              Book Appointment
+              <br />
+              <span className="text-mindease-primary">
+                With Trusted Specialists
+              </span>
             </h1>
             <p className="text-gray-600 text-lg mb-8">
-              Connect with qualified mental health professionals who can help you navigate life's challenges.
+              Connect with qualified mental health professionals who can help you
+              navigate life's challenges.
             </p>
             <Link to="/appointments">
               <Button className="bg-mindease-primary hover:bg-mindease-primary/90 text-lg px-8 py-6 h-auto">
@@ -81,9 +62,9 @@ const Index = () => {
           </div>
           <div className="md:w-1/2">
             <div className="bg-mindease-primary rounded-2xl overflow-hidden">
-              <img 
-                src="/lovable-uploads/hero.png" 
-                alt="Mental health professionals" 
+              <img
+                src="/lovable-uploads/hero.png"
+                alt="Mental health professionals"
                 className="w-full h-auto object-cover"
               />
             </div>
@@ -116,44 +97,51 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Specialties Section */}
       <SpecialtiesSection />
-      
+
       {/* Top Doctors Section */}
       <section className="py-16 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-3">Top Specialists to Book</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our highly rated mental health professionals are ready to help you on your journey to wellness
+              Our highly rated mental health professionals are ready to help you
+              on your journey to wellness
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
             {topDoctors.map((doctor) => (
               <DoctorCard key={doctor.id} doctor={doctor} />
             ))}
           </div>
-          
+
           <div className="text-center">
             <Link to="/doctors">
-              <Button variant="outline" className="border-mindease-primary text-mindease-primary hover:bg-mindease-primary hover:text-white">
+              <Button
+                variant="outline"
+                className="border-mindease-primary text-mindease-primary hover:bg-mindease-primary hover:text-white"
+              >
                 View All Specialists
               </Button>
             </Link>
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="bg-mindease-primary rounded-xl p-8 flex flex-col md:flex-row items-center">
             <div className="md:w-2/3 text-white mb-8 md:mb-0 md:pr-8">
-              <h2 className="text-3xl font-bold mb-4">Book Appointment With 100+ Trusted Specialists</h2>
+              <h2 className="text-3xl font-bold mb-4">
+                Book Appointment With 100+ Trusted Specialists
+              </h2>
               <p className="mb-6 text-white/90">
-                Take the first step towards better mental health by connecting with our trusted specialists
+                Take the first step towards better mental health by connecting
+                with our trusted specialists
               </p>
               <Link to="/appointments">
                 <Button className="bg-white text-mindease-primary hover:bg-white/90">
@@ -162,9 +150,9 @@ const Index = () => {
               </Link>
             </div>
             <div className="md:w-1/3">
-              <img 
-                src="/lovable-uploads/footer.png" 
-                alt="Mental health professional" 
+              <img
+                src="/lovable-uploads/footer.png"
+                alt="Mental health professional"
                 className="rounded-lg w-full h-auto"
               />
             </div>

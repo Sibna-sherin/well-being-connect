@@ -1,13 +1,13 @@
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useUser } from "@/contexts/UserContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 const UserProtectedRoute = () => {
-  const { isAuthenticated } = useUser();
+  const { user } = useAuth();
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  if (!user) {
     // Using setTimeout to prevent the React setState warning during render
     setTimeout(() => {
       toast({

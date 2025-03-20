@@ -39,14 +39,13 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-
+                  <Route path="/doctors/:specialty" element={<DoctorsList />} />
+                  <Route path="/doctor/:id" element={<DoctorDetails />} />
                   {/* Protected User Routes */}
                   <Route element={<AuthRoleRequire role={"user"} />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/appointments" element={<Appointments />} />
                   <Route path="/doctors" element={<DoctorsList />} />
-                  <Route path="/doctors/:specialty" element={<DoctorsList />} />
-                  <Route path="/doctor/:id" element={<DoctorDetails />} />
                   </Route>
 
                   {/* Doctor Routes */}
@@ -55,6 +54,7 @@ const App = () => (
                     path="/doctor/dashboard"
                     element={<DoctorDashboard />}
                   />
+                 
                   <Route
                     path="/doctor/appointments"
                     element={<DoctorAppointments />}

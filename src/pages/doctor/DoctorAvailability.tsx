@@ -1,5 +1,6 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/config/firebase"; // Adjust the path accordingly
 import DoctorNavigation from "@/components/DoctorNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,38 @@ const DoctorAvailability = () => {
     saturday: { enabled: false, startTime: "10:00", endTime: "14:00" },
     sunday: { enabled: false, startTime: "10:00", endTime: "14:00" },
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const docRef = doc(db, "doctors", "doctor-id"); // Replace "doctor-id" with the actual doctor's ID
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setConsultationFee(data.consultationFee || 150);
+          setAvailability(data.availability || {
+            monday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+            tuesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+            wednesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+            thursday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+            friday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+            saturday: { enabled: false, startTime: "10:00", endTime: "14:00" },
+            sunday: { enabled: false, startTime: "10:00", endTime: "14:00" },
+          });
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching availability: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAvailability();
+  }, []);
 
   const handleDayToggle = (day: string) => {
     setAvailability({
@@ -52,11 +85,26 @@ const DoctorAvailability = () => {
     setConsultationFee(values[0]);
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Settings saved",
-      description: "Your availability and fee settings have been updated."
-    });
+  const handleSave = async () => {
+    try {
+      const docRef = doc(db, "doctors", "doctor-id"); // Replace "doctor-id" with the actual doctor's ID
+      await setDoc(docRef, {
+        consultationFee,
+        availability
+      }, { merge: true });
+
+      toast({
+        title: "Settings saved",
+        description: "Your availability and fee settings have been updated."
+      });
+    } catch (error) {
+      console.error("Error saving settings: ", error);
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const days = [
@@ -68,6 +116,23 @@ const DoctorAvailability = () => {
     { key: "saturday", label: "Saturday" },
     { key: "sunday", label: "Sunday" },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-mindease-background pb-12">
+        <DoctorNavigation />
+        <div className="container mx-auto px-4 pt-24">
+          <div className="flex justify-center py-12">
+            <div className="animate-pulse text-center">
+              <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-64"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-mindease-background pb-12">

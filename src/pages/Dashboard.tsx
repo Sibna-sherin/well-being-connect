@@ -1,88 +1,145 @@
-
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/config/firebase";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import UserNavigation from "@/components/UserNavigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, User as UserIcon, Edit } from "lucide-react";
-import { useState } from "react";
 
-// Mock data for the dashboard
-const upcomingAppointments = [
-  {
-    id: 1,
-    doctor: "Dr. Sarah Johnson",
-    speciality: "Psychologist",
-    date: "2023-12-10",
-    time: "10:00 AM",
-    status: "confirmed"
-  },
-  {
-    id: 2,
-    doctor: "Dr. Michael Chen",
-    speciality: "Psychiatrist",
-    date: "2023-12-15",
-    time: "2:30 PM",
-    status: "pending"
-  }
-];
+interface Appointment {
+  id: string;
+  doctor: string;
+  specialty: string;
+  date: string;
+  time: string;
+  status: string;
+  notes?: string;
+}
 
-const pastAppointments = [
-  {
-    id: 3,
-    doctor: "Dr. Emily Roberts",
-    speciality: "Therapist",
-    date: "2023-11-28",
-    time: "11:00 AM",
-    status: "completed",
-    notes: "Follow-up in two weeks"
-  },
-  {
-    id: 4,
-    doctor: "Dr. James Wilson",
-    speciality: "CBT Therapist",
-    date: "2023-11-20",
-    time: "3:00 PM",
-    status: "completed",
-    notes: "Recommended daily mindfulness practice"
-  }
-];
+interface UserProfile {
+  name: string;
+  email: string;
+  phone: string;
+  dob: string;
+  address: string;
+}
 
 const Dashboard = () => {
-  const [userProfile, setUserProfile] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 234 567 8901",
-    dob: "1990-05-15",
-    address: "123 Main St, Anytown, USA"
+  const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: "",
+    email: "",
+    phone: "",
+    dob: "",
+    address: "",
   });
-  
   const [isEditing, setIsEditing] = useState(false);
-  const [editableProfile, setEditableProfile] = useState(userProfile);
-  
+  const [editableProfile, setEditableProfile] = useState<UserProfile>(userProfile);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+  const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user data and appointments
+  useEffect(() => {
+    const fetchUserDataAndAppointments = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user document
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserProfile({
+            name: userData.name || "",
+            email: userData.email || "",
+            phone: userData.phone || "",
+            dob: userData.dob || "",
+            address: userData.address || "",
+          });
+
+          // Fetch appointments
+          const appointmentsCollection = collection(db, "appointments");
+          const appointmentsQuery = query(
+            appointmentsCollection,
+            where("__name__", "in", userData.appointments || [])
+          );
+          const appointmentsSnapshot = await getDocs(appointmentsQuery);
+
+          const appointments: Appointment[] = [];
+          appointmentsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            appointments.push({
+              id: doc.id,
+              doctor: data.doctorName,
+              specialty: data.specialty,
+              date: data.date,
+              time: data.time,
+              status: data.status,
+              notes: data.notes,
+            });
+          });
+
+          // Categorize appointments
+          const now = new Date();
+          const upcoming = appointments.filter(
+            (appt) => new Date(appt.date) >= now
+          );
+          const past = appointments.filter(
+            (appt) => new Date(appt.date) < now
+          );
+
+          setUpcomingAppointments(upcoming);
+          setPastAppointments(past);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDataAndAppointments();
+  }, [user]);
+
   const handleProfileSave = () => {
     setUserProfile(editableProfile);
     setIsEditing(false);
-    // In a real app, you would make an API call here
+    // In a real app, you would make an API call here to update the profile
   };
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setEditableProfile(prev => ({ ...prev, [name]: value }));
+    setEditableProfile((prev) => ({ ...prev, [name]: value }));
   };
-  
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-mindease-background pb-12">
+        <UserNavigation />
+        <div className="container mx-auto px-4 pt-24 text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
       <UserNavigation />
-      
+
       <div className="container mx-auto px-4 pt-24">
         <h1 className="text-3xl font-bold mb-8">Welcome, {userProfile.name}</h1>
-        
+
         <Tabs defaultValue="appointments" className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="appointments">My Appointments</TabsTrigger>
             <TabsTrigger value="profile">My Profile</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="appointments">
             <div className="grid md:grid-cols-2 gap-8">
               {/* Upcoming Appointments */}
@@ -96,19 +153,21 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {upcomingAppointments.length > 0 ? (
-                    upcomingAppointments.map(appointment => (
+                    upcomingAppointments.map((appointment) => (
                       <div key={appointment.id} className="mb-4 p-4 bg-white rounded-lg shadow-sm border">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold">{appointment.doctor}</h3>
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            appointment.status === 'confirmed' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs rounded ${
+                              appointment.status === "confirmed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
                             {appointment.status}
                           </span>
                         </div>
-                        <p className="text-gray-600 text-sm">{appointment.speciality}</p>
+                        <p className="text-gray-600 text-sm">{appointment.specialty}</p>
                         <div className="flex items-center mt-2 text-sm text-gray-500">
                           <Calendar className="h-4 w-4 mr-1" />
                           <span className="mr-3">{appointment.date}</span>
@@ -116,16 +175,16 @@ const Dashboard = () => {
                           <span>{appointment.time}</span>
                         </div>
                         <div className="mt-3 flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="text-mindease-primary border-mindease-primary hover:bg-mindease-primary hover:text-white"
                           >
                             Reschedule
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
                           >
                             Cancel
@@ -143,7 +202,7 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
-              
+
               {/* Past Appointments */}
               <Card>
                 <CardHeader>
@@ -155,7 +214,7 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {pastAppointments.length > 0 ? (
-                    pastAppointments.map(appointment => (
+                    pastAppointments.map((appointment) => (
                       <div key={appointment.id} className="mb-4 p-4 bg-white rounded-lg shadow-sm border">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold">{appointment.doctor}</h3>
@@ -163,7 +222,7 @@ const Dashboard = () => {
                             {appointment.status}
                           </span>
                         </div>
-                        <p className="text-gray-600 text-sm">{appointment.speciality}</p>
+                        <p className="text-gray-600 text-sm">{appointment.specialty}</p>
                         <div className="flex items-center mt-2 text-sm text-gray-500">
                           <Calendar className="h-4 w-4 mr-1" />
                           <span className="mr-3">{appointment.date}</span>
@@ -176,9 +235,9 @@ const Dashboard = () => {
                           </div>
                         )}
                         <div className="mt-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="text-mindease-primary border-mindease-primary hover:bg-mindease-primary hover:text-white"
                           >
                             Book Follow-up
@@ -195,7 +254,7 @@ const Dashboard = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="profile">
             <Card>
               <CardHeader>
@@ -204,9 +263,9 @@ const Dashboard = () => {
                     <UserIcon className="mr-2 h-5 w-5 text-mindease-primary" />
                     Personal Information
                   </CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setIsEditing(!isEditing)}
                     className="text-mindease-primary"
                   >
@@ -273,7 +332,7 @@ const Dashboard = () => {
                         className="w-full p-2 border rounded mt-1"
                       />
                     </div>
-                    <Button 
+                    <Button
                       onClick={handleProfileSave}
                       className="mt-2 bg-mindease-primary hover:bg-mindease-primary/90"
                     >

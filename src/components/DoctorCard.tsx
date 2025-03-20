@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 
 interface Doctor {
-  id: number;
+  id: any;
   name: string;
   specialty: string;
   rating: number;

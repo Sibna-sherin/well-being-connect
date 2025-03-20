@@ -1,5 +1,6 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/config/firebase"; // Adjust the path accordingly
 import DoctorNavigation from "@/components/DoctorNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { Search, FileText, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Patient {
-  id: number;
+  id: string; // Use string for Firestore document IDs
   name: string;
   age: number;
   gender: string;
@@ -21,59 +22,27 @@ interface Patient {
 
 const DoctorPatients = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const [patients, setPatients] = useState<Patient[]>([
-    {
-      id: 1,
-      name: "John Smith",
-      age: 35,
-      gender: "Male",
-      lastVisit: "2025-03-10",
-      condition: "Anxiety disorder",
-      status: "active",
-      notes: "Patient reported reduced anxiety symptoms after 4 weeks on medication."
-    },
-    {
-      id: 2,
-      name: "Emily Johnson",
-      age: 28,
-      gender: "Female",
-      lastVisit: "2025-03-12",
-      condition: "Depression",
-      status: "active",
-      notes: "Showing improvement with CBT. Continue weekly sessions."
-    },
-    {
-      id: 3,
-      name: "Michael Brown",
-      age: 42,
-      gender: "Male",
-      lastVisit: "2025-03-02",
-      condition: "Panic attacks",
-      status: "active",
-      notes: "Started breathing exercises. Follow up in two weeks."
-    },
-    {
-      id: 4,
-      name: "Sarah Wilson",
-      age: 31,
-      gender: "Female",
-      lastVisit: "2025-02-20",
-      condition: "Work-related stress",
-      status: "inactive",
-      notes: "Missed last two appointments. Reach out to reschedule."
-    },
-    {
-      id: 5,
-      name: "David Lee",
-      age: 45,
-      gender: "Male",
-      lastVisit: "2025-03-05",
-      condition: "Insomnia",
-      status: "active",
-      notes: "Sleep quality improving. Maintain current treatment plan."
-    }
-  ]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const patientsSnapshot = await getDocs(collection(db, "patients"));
+        const patientsData = patientsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Patient[];
+        setPatients(patientsData);
+      } catch (error) {
+        console.error("Error fetching patients: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
 
   // Filter patients based on search query
   const filteredPatients = patients.filter(patient => {
@@ -85,6 +54,23 @@ const DoctorPatients = () => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-mindease-background pb-12">
+        <DoctorNavigation />
+        <div className="container mx-auto px-4 pt-24">
+          <div className="flex justify-center py-12">
+            <div className="animate-pulse text-center">
+              <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-64"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-mindease-background pb-12">
@@ -107,7 +93,7 @@ const DoctorPatients = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button className="bg-mindease-primary hover:bg-mindease-primary/90 flex items-center gap-2">
+            <Button onClick={() => alert('cooming soon')} className="bg-mindease-primary hover:bg-mindease-primary/90 flex items-center gap-2">
               <Plus size={16} />
               Add Patient
             </Button>

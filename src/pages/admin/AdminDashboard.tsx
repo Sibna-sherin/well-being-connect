@@ -1,5 +1,6 @@
-
 import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/config/firebase"; // Adjust the path accordingly
 import AdminNavigation from "@/components/AdminNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,33 +64,30 @@ const StatCard = ({
   );
 };
 
-// Mock data - in a real application, this would be fetched from an API
-const recentDoctorRegistrations = [
-  { id: 1, name: "Dr. Emily Wilson", specialty: "Psychologist", status: "pending", date: "2023-06-15" },
-  { id: 2, name: "Dr. James Rodriguez", specialty: "Psychiatrist", status: "approved", date: "2023-06-14" },
-  { id: 3, name: "Dr. Sarah Chen", specialty: "Therapist", status: "pending", date: "2023-06-13" },
-  { id: 4, name: "Dr. Michael Brown", specialty: "Counselor", status: "rejected", date: "2023-06-12" },
-  { id: 5, name: "Dr. Lisa Taylor", specialty: "Child Psychologist", status: "approved", date: "2023-06-11" },
-];
-
-const recentAlerts = [
-  { id: 1, type: "error", message: "Payment gateway timeout at 14:35", time: "2 hours ago" },
-  { id: 2, type: "warning", message: "High server load detected", time: "4 hours ago" },
-  { id: 3, type: "success", message: "Database backup completed successfully", time: "6 hours ago" },
-  { id: 4, type: "error", message: "Failed login attempts from IP 192.168.1.123", time: "12 hours ago" },
-  { id: 5, type: "warning", message: "System storage at 85% capacity", time: "1 day ago" },
-];
-
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [recentDoctorRegistrations, setRecentDoctorRegistrations] = useState([]);
+  const [recentAlerts, setRecentAlerts] = useState([]);
 
   useEffect(() => {
-    // Simulate data loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const fetchData = async () => {
+      try {
+        const doctorsSnapshot = await getDocs(collection(db, "doctors"));
+        const alertsSnapshot = await getDocs(collection(db, "alerts"));
 
-    return () => clearTimeout(timer);
+        const doctorsData = doctorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const alertsData = alertsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        setRecentDoctorRegistrations(doctorsData);
+        setRecentAlerts(alertsData);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const getStatusBadge = (status: string) => {

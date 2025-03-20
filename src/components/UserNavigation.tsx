@@ -23,9 +23,9 @@ const UserNavigation = () => {
             <Link to="/dashboard" className="text-gray-700 hover:text-mindease-primary transition-colors">
               Dashboard
             </Link>
-            <Link to="/profile" className="text-gray-700 hover:text-mindease-primary transition-colors">
+            {/* <Link to="/profile" className="text-gray-700 hover:text-mindease-primary transition-colors">
               My Profile
-            </Link>
+            </Link> */}
             <Link to="/appointments" className="text-gray-700 hover:text-mindease-primary transition-colors">
               Book Appointment
             </Link>
@@ -49,12 +49,12 @@ const UserNavigation = () => {
                     <span>Dashboard</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                {/* <DropdownMenuItem>
                   <Link to="/profile" className="flex items-center w-full">
                     <User className="mr-2 h-4 w-4" />
                     <span>My Profile</span>
                   </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem>
                   <Link to="/appointments" className="flex items-center w-full">
                     <Calendar className="mr-2 h-4 w-4" />
